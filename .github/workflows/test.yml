@@ -22,6 +22,8 @@ jobs:
           cache-dependency-path: demos/dachshund-gatekeeper/ui/package-lock.json
       - name: Compile Python sources
         run: python -m py_compile demos/*/*.py
+      - name: Check shell syntax
+        run: bash -n scripts/*.sh
       - name: Test Gatekeeper policy
         run: python -m unittest -v demos/dachshund-gatekeeper/test_gatekeeper_core.py
       - name: Build Gatekeeper UI

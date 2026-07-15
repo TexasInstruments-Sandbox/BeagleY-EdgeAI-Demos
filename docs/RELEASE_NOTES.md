@@ -7,6 +7,7 @@ Initial public demo release for the 4 GB BeagleY-AI (AM67A/J722S).
   packages in one standard `tar.xz` archive
 - optional regular-SD-boot Armbian Noble Minimal base image in standard
   `.img.xz` form; EdgeAI packages remain a separate, explicit installation
+- release-hosted, checksum-pinned copy/paste bootstrap installer
 - guarded normal-Armbian Noble installer with dry-run, checksum, state record,
   camera-DTB selection, audit, and rollback information
 - strict TFLite image classification, TFLite dog-breed classification, and

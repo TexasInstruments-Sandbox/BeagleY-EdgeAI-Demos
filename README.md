@@ -5,6 +5,20 @@ Hardware-validated, locally accelerated demos for the 4 GB BeagleY-AI
 11.02 stack on 64-bit Armbian Ubuntu Noble without requiring TI's prebuilt
 filesystem image.
 
+## Quick install — copy and paste
+
+On a 4 GB BeagleY-AI running 64-bit Armbian Ubuntu Noble, this command
+downloads the pinned release, verifies all checksums, installs it, and reboots:
+
+```bash
+curl -fsSL --proto '=https' --tlsv1.2 https://github.com/TexasInstruments-Sandbox/BeagleY-EdgeAI-Demos/releases/download/v11.2.1-beagley.1/install-beagley-edgeai.sh | sudo bash -s -- --camera none --reboot
+```
+
+For an IMX219 attached to CSI0, change `--camera none` to
+`--camera imx219`. To verify compatibility without changing the board, replace
+`--reboot` with `--dry-run`. The expanded, auditable procedure and rollback
+steps are in the [installation guide](docs/STOCK_ARMBIAN_INSTALL.md).
+
 ![Dachshund Gatekeeper running on J722S](demos/dachshund-gatekeeper/proof/gatekeeper-ui-real-inference.jpg)
 
 ## Demos
