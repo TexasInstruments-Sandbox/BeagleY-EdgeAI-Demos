@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+node_modules/
+dist/
+*.deb
+*.tar.xz
+SHA256SUMS
+/release/
+/build/
+*-result.json
+*-proof.png
+!demos/**/proof/*-result.json
+!demos/**/proof/*-proof.png

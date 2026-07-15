@@ -1,0 +1,31 @@
+name: Test demos
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  host-tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: demos/dachshund-gatekeeper/ui/package-lock.json
+      - name: Compile Python sources
+        run: python -m py_compile demos/*/*.py
+      - name: Test Gatekeeper policy
+        run: python -m unittest -v demos/dachshund-gatekeeper/test_gatekeeper_core.py
+      - name: Build Gatekeeper UI
+        working-directory: demos/dachshund-gatekeeper/ui
+        run: |
+          npm ci
+          npm run build

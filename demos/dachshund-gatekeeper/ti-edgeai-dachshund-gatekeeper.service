@@ -1,0 +1,18 @@
+[Unit]
+Description=TI EdgeAI Dachshund Gatekeeper
+Documentation=file:/usr/share/doc/ti-edgeai-dachshund-gatekeeper/README.md.gz
+After=network-online.target systemd-udev-settle.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/default/ti-edgeai-dachshund-gatekeeper
+ExecStart=/usr/bin/python3 /usr/lib/ti-edgeai-dachshund-gatekeeper/gatekeeper.py --source ${GATEKEEPER_SOURCE} --video ${GATEKEEPER_VIDEO} --detector-dir /opt/ti-edgeai-gatekeeper/models/ONR-OD-8200-yolox-nano-lite-mmdet-coco-416x416 --breed-dir /opt/ti-edgeai-gatekeeper/models/TFL-CL-DOGBREEDS31-mobileNetV2 --ui-dir /usr/share/ti-edgeai-dachshund-gatekeeper/ui --output-dir /var/lib/ti-edgeai-gatekeeper --host 0.0.0.0 --port ${GATEKEEPER_PORT} $GATEKEEPER_EXTRA_ARGS
+Restart=on-failure
+RestartSec=3
+User=root
+Group=root
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target

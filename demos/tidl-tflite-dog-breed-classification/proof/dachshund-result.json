@@ -1,0 +1,103 @@
+{
+  "captured_utc": "2026-07-15T16:54:01.676833+00:00",
+  "compiler_info_sha256": "d03227075cf61e318813effb76308649c248827406b37d99274c3e42e455b1cd",
+  "core_number": 1,
+  "cpu_fallback": "disabled (no default delegates; one all-node TIDL group)",
+  "delegate": "libtidl_tfl_delegate.so",
+  "delegate_groups": 1,
+  "graph_operators": 71,
+  "hostname": "beagley-ai",
+  "iterations": 100,
+  "kernel": "6.12.49-vendor-k3-beagle",
+  "max_rss_kib": 149884,
+  "mean_inference_ms": 6.906053899983817,
+  "mem_available_after_bytes": 2338394112,
+  "mem_available_before_bytes": 2345426944,
+  "model": "./TFL-CL-DOGBREEDS31-mobileNetV2/model/mobilenetv2-dog-breeds-31.tflite",
+  "model_license": "MIT",
+  "model_revision": "b51edc39bd75596cde50e7e888f5d20779aadf9c",
+  "model_sha256": "3ca3ba3c0cc43cd80e2be45486fca2f555104369d04d340afb16166329076754",
+  "model_source": "Jaiking001/Dog_Breed_prediction",
+  "operators_delegated": 71,
+  "output_sha256": "4055f22bf3f758700505a248f42ae666d1553572a3edb60217b115da3b25ebf1",
+  "preprocessed_tensor_sha256": "2b196225f655c7089b041337377dbb341d64e6232b06f738659ac2f9f6dc8960",
+  "preprocessing": "OpenCV nearest-neighbor stretch to 224x224; BGR to RGB; float32 NHWC / 255",
+  "process_cpu_seconds": 0.27763799999999994,
+  "result": "PASS",
+  "runtime": "TFLite",
+  "soc": "AM67A/J722S",
+  "source_author": "Katemil94",
+  "source_image": "/var/tmp/dachshund-tidl-demo-20260715/dachshund.jpg",
+  "source_image_sha256": "317ab381c6d43ae566b37917a903f3ee220697ad9f921d5990f3cf3dead1bc84",
+  "source_license": "CC BY-SA 4.0",
+  "source_title": "Dachshund (Short).jpg",
+  "source_url": "https://commons.wikimedia.org/wiki/File:%EB%8B%A5%EC%8A%A4%ED%9B%88%ED%8A%B8(%EB%8B%A8%EB%AA%A8%EC%A2%85)_(Dachshund_(Short)).jpg",
+  "tflite_runtime_version": "2.12.0",
+  "tidl_benchmark": {
+    "ddr:read_end": 225412590271,
+    "ddr:read_start": 225402356864,
+    "ddr:write_end": 78957556736,
+    "ddr:write_start": 78955537728,
+    "ts:run_end": 8865595925510,
+    "ts:run_start": 8865589314290
+  },
+  "tidl_ddr_read_bytes": 10233407,
+  "tidl_ddr_write_bytes": 2019008,
+  "tidl_last_run_ns": 6611220,
+  "top5": [
+    {
+      "index": 12,
+      "label": "Dachshund",
+      "score": 0.9869222044944763
+    },
+    {
+      "index": 13,
+      "label": "Doberman Pinscher",
+      "score": 0.006330105010420084
+    },
+    {
+      "index": 18,
+      "label": "Indian pariah",
+      "score": 0.001690009026788175
+    },
+    {
+      "index": 3,
+      "label": "Basset Hound",
+      "score": 0.0015637024771422148
+    },
+    {
+      "index": 8,
+      "label": "Boxer",
+      "score": 0.0008399639627896249
+    }
+  ],
+  "top_results": [
+    {
+      "index": 12,
+      "label": "Dachshund",
+      "score": 0.9869222044944763
+    },
+    {
+      "index": 13,
+      "label": "Doberman Pinscher",
+      "score": 0.006330105010420084
+    },
+    {
+      "index": 18,
+      "label": "Indian pariah",
+      "score": 0.001690009026788175
+    },
+    {
+      "index": 3,
+      "label": "Basset Hound",
+      "score": 0.0015637024771422148
+    },
+    {
+      "index": 8,
+      "label": "Boxer",
+      "score": 0.0008399639627896249
+    }
+  ],
+  "wall_seconds": 0.6906053899983817,
+  "warmup_iterations": 3
+}

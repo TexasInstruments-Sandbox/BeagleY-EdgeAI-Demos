@@ -1,0 +1,6 @@
+# The bundled video gives a new installation a known-good first run.
+GATEKEEPER_SOURCE=video
+GATEKEEPER_VIDEO=/usr/share/ti-edgeai-dachshund-gatekeeper/dachshund-demo.mp4
+GATEKEEPER_PORT=8088
+# Example: GATEKEEPER_EXTRA_ARGS=--breed-threshold=0.75
+GATEKEEPER_EXTRA_ARGS=
