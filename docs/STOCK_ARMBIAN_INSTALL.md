@@ -19,7 +19,7 @@ ASSET="beagley-edgeai-all-debs-j722s-psdk-11.02.01.03.tar.xz"
 
 curl -fLO "${BASE}/${ASSET}"
 curl -fLO "${BASE}/SHA256SUMS"
-sha256sum -c SHA256SUMS
+grep " ${ASSET}$" SHA256SUMS | sha256sum -c -
 tar -xJf "${ASSET}"
 cd beagley-edgeai-j722s-psdk-11.02.01.03
 sha256sum -c CONTENTS.SHA256
@@ -28,6 +28,34 @@ sha256sum -c CONTENTS.SHA256
 `debs/` contains the complete 28-package EdgeAI release and apt metadata.
 `kernel/` contains the two ABI-matched Armbian kernel/DTB packages. All 30
 Debian archives are covered by the inner and outer checksum manifests.
+
+## Optional fresh Armbian SD image
+
+The release includes a normal SD-boot Armbian Noble Minimal image. It is the
+base image used for this package set, with the matching kernel and DTBs, but no
+EdgeAI packages preinstalled. Download and write it from a Linux workstation:
+
+```bash
+TAG=v11.2.1-beagley.1
+BASE="https://github.com/TexasInstruments-Sandbox/BeagleY-EdgeAI-Demos/releases/download/${TAG}"
+IMAGE="armbian-beagley-ai-noble-vendor-6.12.49-minimal-base-20260715.img.xz"
+
+curl -fLO "${BASE}/${IMAGE}"
+curl -fLO "${BASE}/SHA256SUMS"
+grep " ${IMAGE}$" SHA256SUMS | sha256sum -c -
+xz -t "${IMAGE}"
+lsblk
+xzcat "${IMAGE}" | sudo dd of=/dev/sdX bs=4M iflag=fullblock \
+  oflag=direct status=progress conv=fsync
+sync
+```
+
+Replace `/dev/sdX` with the whole SD device, not a partition. The command
+destroys that device's existing contents, so confirm it with `lsblk` before
+writing. Boot the BeagleY-AI from the card, finish Armbian's first-login setup,
+then follow the package download, dry-run, and installation steps in this
+document. The image uses normal SD boot and does not contain the lab's
+TFTP/NFS configuration.
 
 ## Validate without changing the board
 

@@ -5,6 +5,8 @@ Initial public demo release for the 4 GB BeagleY-AI (AM67A/J722S).
 - PSDK `11.02.01.03`, TIDL/OSRT `11.02.16.00`, Vision Apps `11.02.03`
 - 28 validated EdgeAI Debian packages plus two matching Armbian kernel/DTB
   packages in one standard `tar.xz` archive
+- optional regular-SD-boot Armbian Noble Minimal base image in standard
+  `.img.xz` form; EdgeAI packages remain a separate, explicit installation
 - guarded normal-Armbian Noble installer with dry-run, checksum, state record,
   camera-DTB selection, audit, and rollback information
 - strict TFLite image classification, TFLite dog-breed classification, and

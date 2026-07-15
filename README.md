@@ -36,7 +36,7 @@ ASSET="beagley-edgeai-all-debs-j722s-psdk-11.02.01.03.tar.xz"
 
 curl -fLO "${BASE}/${ASSET}"
 curl -fLO "${BASE}/SHA256SUMS"
-sha256sum -c SHA256SUMS
+grep " ${ASSET}$" SHA256SUMS | sha256sum -c -
 tar -xJf "${ASSET}"
 cd beagley-edgeai-j722s-psdk-11.02.01.03
 
@@ -46,6 +46,12 @@ sudo ./install-j722s-release.sh \
 
 # Or replace `none` with `imx219` for an IMX219 attached to CSI0.
 ```
+
+The same release also provides an optional, regular-SD-boot Armbian Noble
+Minimal image. It contains the matching kernel and DTBs but intentionally does
+not preinstall EdgeAI; flash it, complete Armbian's first boot, then install the
+package archive above. See the full guide for its checksum and safe `dd`
+command.
 
 Read [the complete Armbian installation and rollback guide](docs/STOCK_ARMBIAN_INSTALL.md)
 before installing. The installer is board-, architecture-, userspace-,
