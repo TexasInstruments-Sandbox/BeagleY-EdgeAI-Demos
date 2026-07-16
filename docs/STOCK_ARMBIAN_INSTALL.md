@@ -25,8 +25,8 @@ cd beagley-edgeai-j722s-psdk-11.02.01.03
 sha256sum -c CONTENTS.SHA256
 ```
 
-`debs/` contains the complete 29-package EdgeAI release and apt metadata.
-`kernel/` contains the two ABI-matched Armbian kernel/DTB packages. All 31
+`debs/` contains the complete 30-package EdgeAI release and apt metadata.
+`kernel/` contains the two ABI-matched Armbian kernel/DTB packages. All 32
 Debian archives are covered by the inner and outer checksum manifests.
 
 ## Optional fresh Armbian SD image
@@ -149,6 +149,25 @@ increasing frame count, and successful raw-to-video conversion through VPAC
 ISP. Camera decode range depends on focus, lighting, motion, print quality,
 and symbol size.
 
+For EV Spot Sentinel:
+
+```bash
+sudo systemctl enable --now ti-edgeai-ev-spot-sentinel
+curl -fsS http://127.0.0.1:8090/api/status | python3 -m json.tool
+```
+
+Open `http://BOARD-IP:8090/`. Require `acceleration.active: true`, vehicle
+provider `TIDLExecutionProvider`, node count `283`, an increasing invocation
+count, and vehicle CPU fallback `false`. The bundled clip should identify plate
+`5AU5341`, populate per-spot dwell time, and add it to the leaderboard. Global
+ALPR is intentionally and visibly CPU-attributed; it is asynchronous and does
+not weaken the fully accelerated vehicle path.
+
+For IMX219, select `IMX219 · CSI0` and require both ISP-active fields plus an
+increasing frame count. Edit and save the normalized polygons before using a
+real parking view. Overstay output is for human review, not automatic
+enforcement.
+
 ## Demo-only rollback
 
 Removing the Gatekeeper does not remove the base EdgeAI stack:
@@ -165,6 +184,14 @@ OmniCode has the same package-scoped rollback:
 sudo systemctl disable --now ti-edgeai-omnicode
 sudo apt remove ti-edgeai-omnicode
 # Use purge only to remove its conffile and /var/lib proof/upload data.
+```
+
+EV Spot Sentinel also has package-scoped rollback:
+
+```bash
+sudo systemctl disable --now ti-edgeai-ev-spot-sentinel
+sudo apt remove ti-edgeai-ev-spot-sentinel
+# Use purge only to remove its conffile and /var/lib session/proof/upload data.
 ```
 
 ## Full rollback

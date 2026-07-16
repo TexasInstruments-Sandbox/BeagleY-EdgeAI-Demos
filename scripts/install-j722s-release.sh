@@ -81,8 +81,8 @@ source /etc/os-release
     exit 1
 }
 mapfile -t DEBS < <(find "${DEB_DIR}" -maxdepth 1 -type f -name '*.deb' -print | sort)
-[[ "${#DEBS[@]}" -eq 29 ]] || {
-    echo "ERROR: expected 29 release packages, found ${#DEBS[@]}" >&2
+[[ "${#DEBS[@]}" -eq 30 ]] || {
+    echo "ERROR: expected 30 release packages, found ${#DEBS[@]}" >&2
     exit 1
 }
 grep -q $'^ti-edgeai-firmware-j722s\t.*beagley4gb' \

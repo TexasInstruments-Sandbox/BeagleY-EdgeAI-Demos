@@ -35,7 +35,7 @@ copies decoded text only.
 ## Install and run
 
 Install the BeagleY EdgeAI release using the repository-level stock Armbian
-instructions. `ti-edgeai-omnicode` is included in the 29-package archive:
+instructions. `ti-edgeai-omnicode` is included in the 30-package archive:
 
 ```bash
 sudo apt install ./ti-edgeai-omnicode_1.0.0-2_arm64.deb

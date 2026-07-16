@@ -3,7 +3,7 @@
 Initial public demo release for the 4 GB BeagleY-AI (AM67A/J722S).
 
 - PSDK `11.02.01.03`, TIDL/OSRT `11.02.16.00`, Vision Apps `11.02.03`
-- 29 validated EdgeAI Debian packages plus two matching Armbian kernel/DTB
+- 30 validated EdgeAI Debian packages plus two matching Armbian kernel/DTB
   packages in one standard `tar.xz` archive
 - optional regular-SD-boot Armbian Noble Minimal base image in standard
   `.img.xz` form; EdgeAI packages remain a separate, explicit installation
@@ -18,6 +18,9 @@ Initial public demo release for the 4 GB BeagleY-AI (AM67A/J722S).
   a live acceleration-proof UI
 - verified QR Code, Data Matrix, Code 128, and EAN-13 payloads with CPU
   fallback disabled
+- EV Spot Sentinel with 283-node TIDL vehicle occupancy, explicit asynchronous
+  CPU ALPR, configurable parking zones, dwell/overstay history, leaderboard,
+  bundled video, and IMX219 CSI0/VPAC ISP input
 - recorded hardware proof with CPU fallback disabled
 
 The package set previously passed installation, cold boot, TIDL, TFLite,

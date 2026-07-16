@@ -1,0 +1,19 @@
+[Unit]
+Description=TI EdgeAI EV Spot Sentinel
+Documentation=file:/usr/share/doc/ti-edgeai-ev-spot-sentinel/README.md.gz
+After=network-online.target weston.service
+Wants=network-online.target
+Conflicts=ti-edgeai-dachshund-gatekeeper.service ti-edgeai-omnicode.service
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/default/ti-edgeai-ev-spot-sentinel
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 /usr/lib/ti-edgeai-ev-spot-sentinel/sentinel.py $SENTINEL_ARGS
+Restart=on-failure
+RestartSec=3
+StateDirectory=ti-edgeai-ev-spot-sentinel
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target

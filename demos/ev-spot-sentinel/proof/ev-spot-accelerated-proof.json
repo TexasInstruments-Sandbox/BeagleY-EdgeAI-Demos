@@ -1,0 +1,278 @@
+{
+  "acceleration": {
+    "active": true,
+    "cpu_fallback": 0,
+    "isp": {
+      "active": false,
+      "pipeline": "IMX219 CSI0 \u2192 VPAC VISS \u2192 NV12"
+    },
+    "label": "C7x/MMA ACTIVE",
+    "plate": {
+      "invocations": 25,
+      "provider": "CPUExecutionProvider",
+      "reason": "global ALPR transformer is not a stable complete TIDL graph in PSDK 11.02"
+    },
+    "remoteprocs": [
+      {
+        "firmware": "j722s-c71_0-fw",
+        "state": "running"
+      },
+      {
+        "firmware": "j722s-c71_1-fw",
+        "state": "running"
+      },
+      {
+        "firmware": "j722s-main-r5f0_0-fw",
+        "state": "running"
+      }
+    ],
+    "vehicle": {
+      "core": 1,
+      "cpu_fallback": false,
+      "invocations": 2177,
+      "nodes": 283,
+      "provider": "TIDLExecutionProvider"
+    }
+  },
+  "captured_utc": "2026-07-16T03:25:57.136417+00:00",
+  "error": "",
+  "leaderboard": [
+    {
+      "active": true,
+      "last_seen_utc": "2026-07-16T03:25:57.134034+00:00",
+      "longest_seconds": 131.664007,
+      "plate": "5AU5341",
+      "total_seconds": 145.326624,
+      "visits": 2
+    }
+  ],
+  "memory": {
+    "available_bytes": 2168635392,
+    "process_rss_bytes": 346124288,
+    "total_bytes": 2709544960,
+    "used_bytes": 540909568
+  },
+  "paused": false,
+  "performance": {
+    "end_to_end_ms": 62.308273866650175,
+    "fps": 12.307511056404717,
+    "frames": 2176,
+    "plate_inference_ms": 2351.7801379998673,
+    "vehicle_inference_ms": 12.373290999903475
+  },
+  "policy": {
+    "human_review_required": true,
+    "local_only": true,
+    "overstay_seconds": 1800,
+    "retention_days": 30
+  },
+  "proof_image": "/var/lib/ti-edgeai-ev-spot-sentinel/proof/ev-spot-sentinel-20260716T032557Z.jpg",
+  "proof_image_sha256": "acd045b34818cf8de86e60bc4bbe8fa5d111462ac414f41e059cfdb1709fe8e2",
+  "recent_sessions": [
+    {
+      "duration_seconds": 13.69485,
+      "ended_utc": null,
+      "id": 4,
+      "overstay": 0,
+      "plate": null,
+      "plate_confidence": null,
+      "region": null,
+      "spot_id": "EV-A",
+      "started_utc": "2026-07-16T03:25:43.438986+00:00",
+      "vehicle_type": "car"
+    },
+    {
+      "duration_seconds": 13.662617,
+      "ended_utc": null,
+      "id": 5,
+      "overstay": 0,
+      "plate": "5AU5341",
+      "plate_confidence": 0.920223710293758,
+      "region": "Czech Republic",
+      "spot_id": "EV-B",
+      "started_utc": "2026-07-16T03:25:43.471361+00:00",
+      "vehicle_type": "car"
+    },
+    {
+      "duration_seconds": 13.643026,
+      "ended_utc": null,
+      "id": 6,
+      "overstay": 0,
+      "plate": null,
+      "plate_confidence": null,
+      "region": null,
+      "spot_id": "EV-C",
+      "started_utc": "2026-07-16T03:25:43.491091+00:00",
+      "vehicle_type": "car"
+    },
+    {
+      "duration_seconds": 131.665182,
+      "ended_utc": "2026-07-16T03:25:21.718231+00:00",
+      "id": 3,
+      "overstay": 0,
+      "plate": null,
+      "plate_confidence": null,
+      "region": null,
+      "spot_id": "EV-C",
+      "started_utc": "2026-07-16T03:23:10.052963+00:00",
+      "vehicle_type": "car"
+    },
+    {
+      "duration_seconds": 131.664007,
+      "ended_utc": "2026-07-16T03:25:21.700443+00:00",
+      "id": 2,
+      "overstay": 0,
+      "plate": "5AU5341",
+      "plate_confidence": 0.920223710293758,
+      "region": "Czech Republic",
+      "spot_id": "EV-B",
+      "started_utc": "2026-07-16T03:23:10.036332+00:00",
+      "vehicle_type": "car"
+    },
+    {
+      "duration_seconds": 131.664384,
+      "ended_utc": "2026-07-16T03:25:21.666233+00:00",
+      "id": 1,
+      "overstay": 0,
+      "plate": null,
+      "plate_confidence": null,
+      "region": null,
+      "spot_id": "EV-A",
+      "started_utc": "2026-07-16T03:23:10.001644+00:00",
+      "vehicle_type": "car"
+    }
+  ],
+  "source": {
+    "isp_active": false,
+    "label": "ev-spot-demo.mp4",
+    "type": "video"
+  },
+  "spots": [
+    {
+      "dwell_seconds": 13.69485,
+      "id": "EV-A",
+      "name": "EV \u00b7 A",
+      "occupied": true,
+      "overstay": false,
+      "plate": null,
+      "polygon": [
+        [
+          0.02,
+          0.46
+        ],
+        [
+          0.32,
+          0.46
+        ],
+        [
+          0.34,
+          0.98
+        ],
+        [
+          0.0,
+          0.98
+        ]
+      ],
+      "state": "OCCUPIED",
+      "vehicle": {
+        "box": {
+          "height": 0.40555555555555556,
+          "left": 0.00703125,
+          "top": 0.16944444444444445,
+          "width": 0.27890625
+        },
+        "label": "car",
+        "score": 0.7988830208778381
+      }
+    },
+    {
+      "dwell_seconds": 13.662617,
+      "id": "EV-B",
+      "name": "EV \u00b7 B",
+      "occupied": true,
+      "overstay": false,
+      "plate": {
+        "box": {
+          "height": 0.06805555555555555,
+          "left": 0.59140625,
+          "top": 0.5666666666666667,
+          "width": 0.15546875
+        },
+        "region": "Czech Republic",
+        "score": 0.920223710293758,
+        "text": "5AU5341"
+      },
+      "polygon": [
+        [
+          0.34,
+          0.46
+        ],
+        [
+          0.66,
+          0.46
+        ],
+        [
+          0.68,
+          0.98
+        ],
+        [
+          0.32,
+          0.98
+        ]
+      ],
+      "state": "OCCUPIED",
+      "vehicle": {
+        "box": {
+          "height": 0.7027777777777777,
+          "left": 0.03984375,
+          "top": 0.12222222222222222,
+          "width": 0.8328125
+        },
+        "label": "car",
+        "score": 0.5963621735572815
+      }
+    },
+    {
+      "dwell_seconds": 13.643026,
+      "id": "EV-C",
+      "name": "EV \u00b7 C",
+      "occupied": true,
+      "overstay": false,
+      "plate": null,
+      "polygon": [
+        [
+          0.68,
+          0.46
+        ],
+        [
+          0.98,
+          0.46
+        ],
+        [
+          1.0,
+          0.98
+        ],
+        [
+          0.66,
+          0.98
+        ]
+      ],
+      "state": "OCCUPIED",
+      "vehicle": {
+        "box": {
+          "height": 0.5416666666666666,
+          "left": 0.82890625,
+          "top": 0.2125,
+          "width": 0.1671875
+        },
+        "label": "car",
+        "score": 0.8422803282737732
+      }
+    }
+  ],
+  "system": {
+    "cpu_percent": 95.33678756476684
+  },
+  "uptime_seconds": 167.42744403200004,
+  "version": 1
+}

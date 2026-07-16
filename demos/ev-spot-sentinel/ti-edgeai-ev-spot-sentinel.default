@@ -1,0 +1,2 @@
+# EV Spot Sentinel is installed disabled. Enable it explicitly after choosing a source.
+SENTINEL_ARGS="--source video --video /usr/share/ti-edgeai-ev-spot-sentinel/ev-spot-demo.mp4"

@@ -20,7 +20,7 @@ usage() {
 Usage: scripts/build-release-archive.sh --debs DIR --kernel-image DEB --kernel-dtb DEB --builder-commit SHA [--output DIR]
 
 Requires GNU tar, xz, dpkg-deb, and sha256sum. DIR must be the validated
-29-package release directory containing SHA256SUMS and package-manifest.tsv.
+30-package release directory containing SHA256SUMS and package-manifest.tsv.
 EOF
 }
 
@@ -62,8 +62,8 @@ OUTPUT="$(cd "${OUTPUT}" && pwd)"
     exit 1
 }
 mapfile -t package_debs < <(find "${DEBS}" -maxdepth 1 -type f -name '*.deb' -print | sort)
-[[ "${#package_debs[@]}" -eq 29 ]] || {
-    echo "ERROR: expected 29 EdgeAI packages, found ${#package_debs[@]}" >&2
+[[ "${#package_debs[@]}" -eq 30 ]] || {
+    echo "ERROR: expected 30 EdgeAI packages, found ${#package_debs[@]}" >&2
     exit 1
 }
 for file in "${KERNEL_IMAGE}" "${KERNEL_DTB}"; do
@@ -99,7 +99,7 @@ psdk_analytics=REL.PSDK.ANALYTICS.11.02.01.02
 tidl_osrt=11.02.16.00
 vision_apps=11.02.03
 kernel=6.12.49-vendor-k3-beagle
-edgeai_package_count=29
+edgeai_package_count=30
 kernel_package_count=2
 source_commit=${BUILDER_COMMIT}
 EOF
