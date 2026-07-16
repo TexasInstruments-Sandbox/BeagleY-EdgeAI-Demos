@@ -51,20 +51,37 @@ extern "C" int omnicode_decode_luma(const uint8_t* pixels, int width, int height
         return -1;
 
     try {
-        ZXing::ReaderOptions options;
-        options.setTryHarder(true)
-            .setTryRotate(true)
-            .setTryInvert(true)
-            .setTryDownscale(true)
-            .setReturnErrors(false)
-            .setMaxNumberOfSymbols(32)
-            .setTextMode(ZXing::TextMode::HRI)
-            .setEanAddOnSymbol(ZXing::EanAddOnSymbol::Read);
-        if (formats && *formats)
-            options.setFormats(ZXing::BarcodeFormatsFromString(formats));
-
         ZXing::ImageView image(pixels, width, height, ZXing::ImageFormat::Lum, stride);
-        const auto results = ZXing::ReadBarcodes(image, options);
+        const auto make_options = [formats](bool robust) {
+            ZXing::ReaderOptions options;
+            options.setTryHarder(robust)
+                .setTryRotate(true)
+                .setTryInvert(robust)
+                .setTryDownscale(robust)
+                .setReturnErrors(false)
+                // TIDL supplies one localized symbol per crop. Keep a little
+                // headroom for overlapping labels without asking ZXing to
+                // search for 32 symbols in every ROI.
+                .setMaxNumberOfSymbols(4)
+                .setTextMode(ZXing::TextMode::HRI)
+                .setEanAddOnSymbol(ZXing::EanAddOnSymbol::Read);
+            if (formats && *formats)
+                options.setFormats(ZXing::BarcodeFormatsFromString(formats));
+            return options;
+        };
+
+        // Clear, upright detector crops take the inexpensive path. Preserve
+        // the previous maximum-compatibility behavior as an exact fallback
+        // for inverted, low-contrast, small, or otherwise difficult codes.
+        auto results = ZXing::ReadBarcodes(image, make_options(false));
+        const auto valid_count = std::count_if(
+            results.begin(), results.end(), [](const auto& result) { return result.isValid(); });
+        // A TIDL-localized crop normally contains exactly one symbol. Empty
+        // and multi-symbol diagnostic inputs take the compatibility path so
+        // the optimization never narrows the wrapper's original behavior.
+        if (valid_count != 1) {
+            results = ZXing::ReadBarcodes(image, make_options(true));
+        }
         std::ostringstream json;
         json << '[';
         int count = 0;

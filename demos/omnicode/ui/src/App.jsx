@@ -61,7 +61,7 @@ function Telemetry({ status, onCapture }) {
     <div className="pipeline"><h2>ACCELERATED PIPELINE</h2><div><span><i/>CSI / FILE</span><b/><span><i/>VPAC ISP</span><b/><span><i/>TIDL C7x/MMA</span><b/><span className="cpu-stage"><i/>ZXING CPU ROI</span></div></div>
     <div className="metric accent"><strong>{metric(status.performance.fps)} FPS</strong><span>THROUGHPUT</span></div>
     <div className="metric"><strong>{metric(status.performance.detector_ms)} ms</strong><span>DETECT · C7x</span></div>
-    <div className="metric"><strong>{metric(status.performance.decoder_ms)} ms</strong><span>DECODE · CPU ROI</span></div>
+    <div className="metric"><strong>{metric(status.performance.decoder_ms)} ms</strong><span>DECODE AVG · CPU ROI</span></div>
     <div className={`metric ${isp ? "accent" : ""}`}><strong>{isp ? "ACTIVE" : "BYPASSED"}</strong><span>VPAC ISP</span></div>
     <div className="metric accent"><strong>{acceleration.cpu_fallback}</strong><span>CPU FALLBACK</span></div>
     <div className="metric"><strong>{metric(status.system.cpu_percent)}%</strong><span>SYSTEM CPU</span></div>

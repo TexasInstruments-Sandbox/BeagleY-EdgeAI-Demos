@@ -2,5 +2,9 @@
 OMNICODE_SOURCE=media
 OMNICODE_MEDIA=/usr/share/ti-edgeai-omnicode/omnicode-sample.mp4
 OMNICODE_PORT=8090
+# Defaults decode each ROI every third detector frame with two CPU workers and
+# apply a short retry cooldown to unchanged regions and publish a 960-pixel,
+# quality-80 MJPEG preview at up to 15 FPS. Override only for a measured workload.
 # Example: OMNICODE_EXTRA_ARGS=--formats=QRCode,DataMatrix,Code128,EAN13
+# Full-rate diagnostic: --decode-interval=1 --decoder-workers=1 --stream-fps=60
 OMNICODE_EXTRA_ARGS=

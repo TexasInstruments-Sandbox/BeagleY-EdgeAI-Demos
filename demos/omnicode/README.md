@@ -38,7 +38,7 @@ Install the BeagleY EdgeAI release using the repository-level stock Armbian
 instructions. `ti-edgeai-omnicode` is included in the 29-package archive:
 
 ```bash
-sudo apt install ./ti-edgeai-omnicode_1.0.0-1_arm64.deb
+sudo apt install ./ti-edgeai-omnicode_1.0.0-2_arm64.deb
 sudo systemctl enable --now ti-edgeai-omnicode
 ```
 
@@ -57,6 +57,42 @@ sudo systemctl restart ti-edgeai-omnicode
 
 Do not add `--formats` unless you want a smaller allow-list. An invalid name
 fails closed rather than silently decoding another format.
+
+The default performance policy runs the detector on every frame, decodes each
+set of localized crops every third frame using two CPU workers, tries ZXing's
+fast path before its compatibility path, and publishes a 960-pixel,
+quality-80 browser preview at up to 15 FPS in a single leaky background worker.
+This keeps new-code latency low without repeatedly decoding the same static
+payload hundreds of times per second or allowing 1080p JPEG preparation to
+block TIDL. Override it for measurement or a specialized workload through
+`/etc/default/ti-edgeai-omnicode`:
+
+```bash
+# Reproduce full-rate, single-worker decoder behavior for comparison:
+OMNICODE_EXTRA_ARGS="--decode-interval=1 --decoder-workers=1 --stream-fps=60"
+
+# Restrict decoding when only selected formats are required:
+OMNICODE_EXTRA_ARGS="--formats=QRCode,DataMatrix --decode-interval=2"
+```
+
+`performance.decoder_ms` is the average wall-clock decoder cost per frame,
+including zero-cost skipped frames. `decoder_cpu_ms`, `decoder_rois_per_frame`,
+`source_ms`, `compute_ms`, `encoder_ms`, and `encoder_fps` expose the remaining
+breakdown. The encoder cost is reported honestly but is no longer part of
+inference latency.
+
+An unchanged region is decoded at most every 12 detector frames. A new or
+moving region bypasses that short cooldown immediately; use
+`--decode-retry-frames` to tune this for a specialized scene.
+
+On the 4 GB BeagleY-AI validation board the optimized pipeline reached 23.43
+detector FPS with the conservative preview profile, versus a 6.81 FPS baseline.
+The production 960/80/15 live-UI profile sustained 20.71 detector FPS and 11.26
+preview FPS on the bundled video. CSI0/IMX219 through VPAC VISS sustained 12.94
+detector and preview FPS, versus about 5.0 FPS originally. Every run selected
+`TIDLExecutionProvider`, offloaded all 283 detector nodes, and reported
+`cpu_fallback: 0`. Actual rates vary with scene and decoded crop count;
+ZXing payload parsing remains CPU work by design.
 
 ## Verify acceleration
 

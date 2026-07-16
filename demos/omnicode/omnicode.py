@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 from collections import deque
+from concurrent.futures import ThreadPoolExecutor
 import ctypes
 from dataclasses import asdict, dataclass
 import datetime as dt
@@ -52,6 +53,19 @@ def sha256(path: Path) -> str:
 
 def clamp(value: float, minimum: float, maximum: float) -> float:
     return max(minimum, min(maximum, value))
+
+
+def box_iou(left: tuple[int, int, int, int], right: tuple[int, int, int, int]) -> float:
+    x1 = max(left[0], right[0])
+    y1 = max(left[1], right[1])
+    x2 = min(left[2], right[2])
+    y2 = min(left[3], right[3])
+    intersection = max(0, x2 - x1) * max(0, y2 - y1)
+    if not intersection:
+        return 0.0
+    left_area = (left[2] - left[0]) * (left[3] - left[1])
+    right_area = (right[2] - right[0]) * (right[3] - right[1])
+    return intersection / (left_area + right_area - intersection)
 
 
 def process_rss_bytes() -> int:
@@ -250,10 +264,11 @@ class ZxingDecoder:
         self.library.omnicode_decoder_version.restype = ctypes.c_char_p
         self.version = self.library.omnicode_decoder_version().decode("ascii")
         self.formats = formats.encode("ascii") if formats else None
+        self.lock = threading.Lock()
         self.invocations = 0
         self.last_ms = 0.0
 
-    def decode(self, crop: np.ndarray) -> list[dict[str, Any]]:
+    def decode(self, crop: np.ndarray) -> tuple[list[dict[str, Any]], float]:
         gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY) if crop.ndim == 3 else crop
         gray = np.ascontiguousarray(gray, dtype=np.uint8)
         output = ctypes.create_string_buffer(256 * 1024)
@@ -263,14 +278,16 @@ class ZxingDecoder:
             gray.shape[1], gray.shape[0], gray.strides[0], self.formats,
             output, len(output),
         )
-        self.last_ms = (time.perf_counter() - started) * 1000
-        self.invocations += 1
+        elapsed_ms = (time.perf_counter() - started) * 1000
+        with self.lock:
+            self.last_ms = elapsed_ms
+            self.invocations += 1
         if count < 0:
             raise RuntimeError(f"ZXing decoder returned {count}")
         values = json.loads(output.value.decode("utf-8"))
         if count != len(values):
             raise RuntimeError("ZXing result count does not match its JSON payload")
-        return values
+        return values, elapsed_ms
 
 
 class FrameSource:
@@ -386,14 +403,32 @@ class OmniCode:
         self.latest_jpeg = b""
         self.latest_raw: np.ndarray | None = None
         self.latest_detections: list[Detection] = []
+        self.decoded_tracks: list[tuple[tuple[int, int, int, int], int]] = []
+        self.decode_attempts: list[tuple[tuple[int, int, int, int], int]] = []
         self.frame_sequence = 0
+        self.jpeg_sequence = 0
+        self.next_jpeg_at = 0.0
+        self.encoder_pending = False
+        self.encoder_skips = 0
+        self.source_generation = 0
         self.started = time.monotonic()
         self.frame_times: deque[float] = deque(maxlen=90)
         self.latencies: deque[float] = deque(maxlen=90)
+        self.compute_times: deque[float] = deque(maxlen=90)
+        self.source_times: deque[float] = deque(maxlen=90)
+        self.decoder_wall_times: deque[float] = deque(maxlen=90)
+        self.decoder_cpu_times: deque[float] = deque(maxlen=90)
+        self.decoder_jobs: deque[int] = deque(maxlen=90)
+        self.encoder_times: deque[float] = deque(maxlen=90)
+        self.jpeg_times: deque[float] = deque(maxlen=90)
         self.scans: deque[Scan] = deque(maxlen=50)
         self.scan_index: dict[tuple[str, str], Scan] = {}
         self.selected: Scan | None = None
         self.cpu_sampler = CpuSampler()
+        self.decoder_pool = ThreadPoolExecutor(
+            max_workers=args.decoder_workers, thread_name_prefix="omnicode-zxing"
+        )
+        self.encoder_pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="omnicode-jpeg")
         self.thread = threading.Thread(target=self._run, name="omnicode-inference", daemon=True)
 
     def start(self) -> None:
@@ -404,6 +439,8 @@ class OmniCode:
     def stop(self) -> None:
         self.stop_event.set()
         self.thread.join(timeout=10)
+        self.decoder_pool.shutdown(wait=True, cancel_futures=True)
+        self.encoder_pool.shutdown(wait=True, cancel_futures=True)
         with self.lock:
             if self.source:
                 self.source.close()
@@ -435,7 +472,24 @@ class OmniCode:
         with self.lock:
             previous = self.source
             self.source = candidate
+            self.latest_jpeg = b""
+            self.latest_raw = None
             self.latest_detections = []
+            self.decoded_tracks = []
+            self.decode_attempts = []
+            self.frame_sequence = 0
+            self.next_jpeg_at = 0.0
+            self.encoder_skips = 0
+            self.source_generation += 1
+            self.frame_times.clear()
+            self.latencies.clear()
+            self.compute_times.clear()
+            self.source_times.clear()
+            self.decoder_wall_times.clear()
+            self.decoder_cpu_times.clear()
+            self.decoder_jobs.clear()
+            self.encoder_times.clear()
+            self.jpeg_times.clear()
             self.error = ""
         if previous:
             previous.close()
@@ -467,7 +521,9 @@ class OmniCode:
             self.scan_index = {key: value for key, value in self.scan_index.items() if key in keep}
         return scan
 
-    def _decode_detection(self, frame: np.ndarray, detection: Detection) -> list[dict[str, Any]]:
+    def _decode_detection(
+        self, frame: np.ndarray, detection: Detection
+    ) -> tuple[list[dict[str, Any]], float]:
         x1, y1, x2, y2 = detection.box
         margin_x = max(8, round((x2 - x1) * self.args.crop_margin))
         margin_y = max(8, round((y2 - y1) * self.args.crop_margin))
@@ -476,12 +532,35 @@ class OmniCode:
             max(0, x1 - margin_x): min(frame.shape[1], x2 + margin_x),
         ]
         if not crop.size:
-            return []
+            return [], 0.0
         shortest = min(crop.shape[:2])
         if shortest < self.args.min_decode_pixels:
             scale = self.args.min_decode_pixels / shortest
             crop = cv2.resize(crop, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
         return self.decoder.decode(crop)
+
+    def _remember_decoded(self, detection: Detection) -> None:
+        expires = self.frame_sequence + max(
+            2, self.args.decode_interval * 2, self.args.decode_retry_frames
+        )
+        retained = [
+            (box, expiry) for box, expiry in self.decoded_tracks
+            if expiry >= self.frame_sequence and box_iou(box, detection.box) < 0.5
+        ]
+        retained.append((detection.box, expires))
+        self.decoded_tracks = retained
+
+    def _claim_decode(self, detection: Detection) -> bool:
+        retained = [
+            (box, expiry) for box, expiry in self.decode_attempts
+            if expiry >= self.frame_sequence
+        ]
+        if any(box_iou(box, detection.box) >= 0.65 for box, _expiry in retained):
+            self.decode_attempts = retained
+            return False
+        retained.append((detection.box, self.frame_sequence + self.args.decode_retry_frames))
+        self.decode_attempts = retained
+        return True
 
     def _encode_frame(self, frame: np.ndarray) -> bytes:
         display = frame
@@ -495,6 +574,47 @@ class OmniCode:
         if not ok:
             raise RuntimeError("JPEG encoding failed")
         return encoded.tobytes()
+
+    def _finish_encode(
+        self, future: Any, frame: np.ndarray, detections: list[Detection],
+        generation: int, started: float,
+    ) -> None:
+        try:
+            jpeg = future.result()
+            elapsed_ms = (time.perf_counter() - started) * 1000
+        except Exception as error:
+            with self.lock:
+                self.encoder_pending = False
+                self.error = f"{type(error).__name__}: {error}"
+            return
+        with self.frame_condition:
+            self.encoder_pending = False
+            if generation != self.source_generation:
+                return
+            self.latest_raw = frame
+            self.latest_jpeg = jpeg
+            self.latest_detections = detections
+            self.encoder_times.append(elapsed_ms)
+            self.jpeg_times.append(time.monotonic())
+            self.jpeg_sequence += 1
+            self.frame_condition.notify_all()
+
+    def _schedule_encode(self, frame: np.ndarray, detections: list[Detection]) -> None:
+        now = time.monotonic()
+        with self.lock:
+            if self.encoder_pending or now < self.next_jpeg_at:
+                self.encoder_skips += 1
+                return
+            self.encoder_pending = True
+            self.next_jpeg_at = now + 1 / self.args.stream_fps
+            generation = self.source_generation
+        started = time.perf_counter()
+        future = self.encoder_pool.submit(self._encode_frame, frame)
+        future.add_done_callback(
+            lambda completed: self._finish_encode(
+                completed, frame, detections, generation, started
+            )
+        )
 
     def _run(self) -> None:
         while not self.stop_event.is_set():
@@ -514,7 +634,9 @@ class OmniCode:
             if source is None or paused:
                 time.sleep(0.05)
                 continue
+            loop_started = time.perf_counter()
             ok, frame = source.read()
+            source_ms = (time.perf_counter() - loop_started) * 1000
             if not ok or frame is None:
                 with self.lock:
                     self.error = f"Source stopped: {source.label}"
@@ -523,24 +645,43 @@ class OmniCode:
             started = time.perf_counter()
             try:
                 detections = self.detector.detect(frame)
-                for detection in detections:
-                    before = self.decoder.last_ms
-                    decoded_values = self._decode_detection(frame, detection)
-                    decode_ms = self.decoder.last_ms if self.decoder.last_ms != before else 0.0
-                    with self.lock:
-                        for decoded in decoded_values:
-                            self._record_scan(decoded, detection, decode_ms)
-                jpeg = self._encode_frame(frame)
+                decode_wall_ms = 0.0
+                decode_cpu_ms = 0.0
+                decode_count = 0
+                if detections and self.frame_sequence % self.args.decode_interval == 0:
+                    decode_started = time.perf_counter()
+                    eligible = [
+                        detection for detection in detections if self._claim_decode(detection)
+                    ]
+                    futures = [
+                        (detection, self.decoder_pool.submit(self._decode_detection, frame, detection))
+                        for detection in eligible
+                    ]
+                    decode_count = len(futures)
+                    for detection, future in futures:
+                        decoded_values, decode_ms = future.result()
+                        decode_cpu_ms += decode_ms
+                        with self.lock:
+                            if decoded_values:
+                                self._remember_decoded(detection)
+                            for decoded in decoded_values:
+                                self._record_scan(decoded, detection, decode_ms)
+                    decode_wall_ms = (time.perf_counter() - decode_started) * 1000
+
+                self._schedule_encode(frame, detections)
                 now = time.monotonic()
+                compute_ms = (time.perf_counter() - started) * 1000
+                total_ms = (time.perf_counter() - loop_started) * 1000
                 with self.frame_condition:
-                    self.latest_raw = frame.copy()
-                    self.latest_jpeg = jpeg
-                    self.latest_detections = detections
                     self.frame_sequence += 1
                     self.frame_times.append(now)
-                    self.latencies.append((time.perf_counter() - started) * 1000)
+                    self.latencies.append(total_ms)
+                    self.compute_times.append(compute_ms)
+                    self.source_times.append(source_ms)
+                    self.decoder_wall_times.append(decode_wall_ms)
+                    self.decoder_cpu_times.append(decode_cpu_ms)
+                    self.decoder_jobs.append(decode_count)
                     self.error = ""
-                    self.frame_condition.notify_all()
             except Exception as error:
                 with self.lock:
                     self.error = f"{type(error).__name__}: {error}"
@@ -553,16 +694,30 @@ class OmniCode:
             shape = self.latest_raw.shape[:2] if self.latest_raw is not None else None
             frame_times = list(self.frame_times)
             latencies = list(self.latencies)
+            compute_times = list(self.compute_times)
+            source_times = list(self.source_times)
+            decoder_wall_times = list(self.decoder_wall_times)
+            decoder_cpu_times = list(self.decoder_cpu_times)
+            decoder_jobs = list(self.decoder_jobs)
+            encoder_times = list(self.encoder_times)
+            jpeg_times = list(self.jpeg_times)
+            encoder_pending = self.encoder_pending
+            encoder_skips = self.encoder_skips
             scans = [asdict(scan) for scan in list(self.scans)[:20]]
             selected = asdict(self.selected) if self.selected else None
+            decoded_tracks = [
+                box for box, expiry in self.decoded_tracks if expiry >= self.frame_sequence
+            ]
             state = {
                 "paused": self.paused, "error": self.error, "frames": self.frame_sequence,
             }
         fps = 0.0
         if len(frame_times) > 1 and frame_times[-1] > frame_times[0]:
             fps = (len(frame_times) - 1) / (frame_times[-1] - frame_times[0])
+        encoder_fps = 0.0
+        if len(jpeg_times) > 1 and jpeg_times[-1] > jpeg_times[0]:
+            encoder_fps = (len(jpeg_times) - 1) / (jpeg_times[-1] - jpeg_times[0])
         boxes = []
-        decoded_boxes = {scan["box"] for scan in scans}
         if shape:
             height, width = shape
             for detection in detections:
@@ -570,7 +725,8 @@ class OmniCode:
                 boxes.append({
                     "left": x1 / width, "top": y1 / height,
                     "width": (x2 - x1) / width, "height": (y2 - y1) / height,
-                    "score": detection.score, "decoded": detection.box in decoded_boxes,
+                    "score": detection.score,
+                    "decoded": any(box_iou(detection.box, box) >= 0.5 for box in decoded_tracks),
                 })
         return {
             "version": 1,
@@ -588,8 +744,21 @@ class OmniCode:
             "performance": {
                 "fps": fps,
                 "end_to_end_ms": float(np.mean(latencies[-30:])) if latencies else 0.0,
+                "compute_ms": float(np.mean(compute_times[-30:])) if compute_times else 0.0,
+                "source_ms": float(np.mean(source_times[-30:])) if source_times else 0.0,
                 "detector_ms": self.detector.last_ms,
-                "decoder_ms": self.decoder.last_ms,
+                "decoder_ms": float(np.mean(decoder_wall_times[-30:])) if decoder_wall_times else 0.0,
+                "decoder_cpu_ms": float(np.mean(decoder_cpu_times[-30:])) if decoder_cpu_times else 0.0,
+                "decoder_rois_per_frame": float(np.mean(decoder_jobs[-30:])) if decoder_jobs else 0.0,
+                "encoder_ms": float(np.mean(encoder_times[-30:])) if encoder_times else 0.0,
+                "encoder_fps": encoder_fps,
+                "encoder_async": True,
+                "encoder_pending": encoder_pending,
+                "encoder_skips": encoder_skips,
+                "decode_interval": self.args.decode_interval,
+                "decode_retry_frames": self.args.decode_retry_frames,
+                "decoder_workers": self.args.decoder_workers,
+                "stream_fps_limit": self.args.stream_fps,
             },
             "acceleration": {
                 "active": self.detector.invocations > 0,
@@ -712,9 +881,9 @@ class OmniCodeHandler(BaseHTTPRequestHandler):
             while not self.app.stop_event.is_set():
                 with self.app.frame_condition:
                     self.app.frame_condition.wait_for(
-                        lambda: self.app.frame_sequence != sequence, timeout=2
+                        lambda: self.app.jpeg_sequence != sequence, timeout=2
                     )
-                    sequence = self.app.frame_sequence
+                    sequence = self.app.jpeg_sequence
                     frame = self.app.latest_jpeg
                 if not frame:
                     continue
@@ -793,20 +962,26 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--detector-threshold", type=float, default=0.30)
     parser.add_argument("--crop-margin", type=float, default=0.18)
     parser.add_argument("--min-decode-pixels", type=int, default=240)
+    parser.add_argument("--decode-interval", type=int, default=3)
+    parser.add_argument("--decode-retry-frames", type=int, default=12)
+    parser.add_argument("--decoder-workers", type=int, choices=range(1, 5), default=2)
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8090)
     parser.add_argument("--ui-dir", default=str(demo_dir / "ui" / "dist"))
     parser.add_argument("--output-dir", default="/var/lib/ti-edgeai-omnicode")
-    parser.add_argument("--stream-width", type=int, default=1280)
-    parser.add_argument("--jpeg-quality", type=int, default=84)
+    parser.add_argument("--stream-width", type=int, default=960)
+    parser.add_argument("--jpeg-quality", type=int, default=80)
+    parser.add_argument("--stream-fps", type=float, default=15)
     parser.add_argument("--image-fps", type=float, default=5)
     parser.add_argument("--max-upload-bytes", type=int, default=512 * 1024 * 1024)
     parser.add_argument("--no-loop", dest="loop", action="store_false")
     args = parser.parse_args()
     if not 0 < args.detector_threshold <= 1 or not 0 <= args.crop_margin <= 1:
         parser.error("threshold or crop margin is invalid")
-    if args.min_decode_pixels < 32 or not 1 <= args.jpeg_quality <= 100 or args.image_fps <= 0:
-        parser.error("decode size, JPEG quality, or image FPS is invalid")
+    if (args.min_decode_pixels < 32 or args.decode_interval < 1 or args.decode_retry_frames < 1
+            or not 1 <= args.jpeg_quality <= 100 or args.image_fps <= 0
+            or args.stream_fps <= 0):
+        parser.error("decode size/interval, JPEG quality, image FPS, or stream FPS is invalid")
     if not Path(args.ui_dir).is_dir():
         parser.error(f"built UI is missing: {args.ui_dir}")
     return args

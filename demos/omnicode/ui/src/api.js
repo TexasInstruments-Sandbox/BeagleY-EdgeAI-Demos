@@ -59,7 +59,11 @@ export const PREVIEW_STATUS = {
     { id: "e54b28aa4c7d", timestamp: "2026-07-15T23:42:14Z", format: "Code128", text: "BEAGLEY-EDGEAI-2026", detector_score: .961, count: 3 },
     { id: "37190b66a470", timestamp: "2026-07-15T23:42:12Z", format: "EAN13", text: "9780201379624", detector_score: .934, count: 2 },
   ],
-  performance: { fps: 27.1, end_to_end_ms: 36.4, detector_ms: 8.1, decoder_ms: 1.8 },
+  performance: { fps: 27.1, end_to_end_ms: 36.4, compute_ms: 31.2, source_ms: 5.2,
+    detector_ms: 8.1, decoder_ms: 1.8, decoder_cpu_ms: 2.9,
+    decoder_rois_per_frame: .67, encoder_ms: 4.2, encoder_fps: 12,
+    encoder_async: true, encoder_pending: false, encoder_skips: 19, decode_interval: 3,
+    decoder_workers: 2, stream_fps_limit: 12 },
   acceleration: {
     active: true, label: "TIDL · C7x/MMA", cpu_fallback: 0,
     detector: { provider: "TIDLExecutionProvider", core: 1, nodes: 283, invocations: 18442 },
