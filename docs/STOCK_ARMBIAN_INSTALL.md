@@ -25,8 +25,8 @@ cd beagley-edgeai-j722s-psdk-11.02.01.03
 sha256sum -c CONTENTS.SHA256
 ```
 
-`debs/` contains the complete 28-package EdgeAI release and apt metadata.
-`kernel/` contains the two ABI-matched Armbian kernel/DTB packages. All 30
+`debs/` contains the complete 29-package EdgeAI release and apt metadata.
+`kernel/` contains the two ABI-matched Armbian kernel/DTB packages. All 31
 Debian archives are covered by the inner and outer checksum manifests.
 
 ## Optional fresh Armbian SD image
@@ -130,6 +130,25 @@ For IMX219, select `IMX219 · CSI0` in the UI. Require `isp_active: true`, an
 increasing frame/detector count, and no pipeline error. A scene without a dog
 will correctly remain `WATCHING`.
 
+For OmniCode:
+
+```bash
+sudo systemctl enable --now ti-edgeai-omnicode
+curl -fsS http://127.0.0.1:8090/api/status | python3 -m json.tool
+```
+
+Open `http://BOARD-IP:8090/`. The bundled clip should decode QR Code, Data
+Matrix, Code 128, and EAN-13 while reporting `TIDLExecutionProvider`, detector
+node count `283`, increasing detector invocations, running C7x remote
+processors, and CPU fallback `0`. ZXing-C++ runs on the Cortex-A53 only after
+TIDL has localized a crop; full-frame CPU localization is disabled and shown
+as such in the status response.
+
+Select `IMX219 · CSI0` to use the camera. Require `source.isp_active: true`, an
+increasing frame count, and successful raw-to-video conversion through VPAC
+ISP. Camera decode range depends on focus, lighting, motion, print quality,
+and symbol size.
+
 ## Demo-only rollback
 
 Removing the Gatekeeper does not remove the base EdgeAI stack:
@@ -137,6 +156,14 @@ Removing the Gatekeeper does not remove the base EdgeAI stack:
 ```bash
 sudo systemctl disable --now ti-edgeai-dachshund-gatekeeper
 sudo apt remove ti-edgeai-dachshund-gatekeeper
+# Use purge only to remove its conffile and /var/lib proof/upload data.
+```
+
+OmniCode has the same package-scoped rollback:
+
+```bash
+sudo systemctl disable --now ti-edgeai-omnicode
+sudo apt remove ti-edgeai-omnicode
 # Use purge only to remove its conffile and /var/lib proof/upload data.
 ```
 

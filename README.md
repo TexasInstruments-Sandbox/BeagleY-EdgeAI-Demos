@@ -21,6 +21,8 @@ steps are in the [installation guide](docs/STOCK_ARMBIAN_INSTALL.md).
 
 ![Dachshund Gatekeeper running on J722S](demos/dachshund-gatekeeper/proof/gatekeeper-ui-real-inference.jpg)
 
+![OmniCode reading QR, Data Matrix, Code 128, and EAN-13 with TIDL localization](demos/omnicode/proof/omnicode-ui-real-acceleration.png)
+
 ## Demos
 
 | Demo | Accelerator path |
@@ -28,6 +30,7 @@ steps are in the [installation guide](docs/STOCK_ARMBIAN_INSTALL.md).
 | [TFLite image classification](demos/tidl-tflite-image-classification/) | MobileNetV1, 34/34 operators in one TIDL group |
 | [TFLite dog-breed classification](demos/tidl-tflite-dog-breed-classification/) | MobileNetV2, 71/71 operators in one TIDL group |
 | [Dachshund Gatekeeper](demos/dachshund-gatekeeper/) | YOLOX on C7x-1, TFLite breed classifier on C7x-2, uploaded/existing video or IMX219 CSI0 through VPAC ISP |
+| [OmniCode multi-format reader](demos/omnicode/) | J722S-compiled YOLOX-Nano localization on C7x/MMA; ZXing-C++ decodes only localized crops; video, upload, board path, or IMX219 CSI0 through VPAC ISP |
 
 Every demo fails closed when its expected TIDL graph is missing. Recorded
 proofs include execution time, memory, C7x DDR counters, model hashes, and CPU
@@ -37,7 +40,7 @@ fallback state; a result that silently ran only on Cortex-A is not accepted.
 
 The release asset is an ordinary `tar.xz` archive containing:
 
-- 28 validated `arm64`/`all` EdgeAI Debian packages;
+- 29 validated `arm64`/`all` EdgeAI Debian packages;
 - the matching Armbian `6.12.49-vendor-k3-beagle` kernel and DTB packages;
 - apt metadata, package manifests, checksums, and the guarded installer.
 
@@ -87,6 +90,18 @@ curl -fsS http://127.0.0.1:8088/api/status | python3 -m json.tool
 
 The service starts with its bundled Dachshund video, so both C7x pipelines can
 be tested before a camera is attached.
+
+Or start OmniCode and open `http://BOARD-IP:8090/`:
+
+```bash
+sudo systemctl enable --now ti-edgeai-omnicode
+curl -fsS http://127.0.0.1:8090/api/status | python3 -m json.tool
+```
+
+Its bundled clip proves QR Code, Data Matrix, Code 128, and EAN-13 payloads.
+The UI also accepts uploaded/existing media or IMX219 CSI0 input. OmniCode
+stops Gatekeeper while it runs because both services own exclusive TIDL/TIOVX
+resources; either service can be started again without reinstalling packages.
 
 ## Versions
 

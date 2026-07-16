@@ -1,0 +1,179 @@
+{
+  "acceleration": {
+    "active": true,
+    "cpu_fallback": 0,
+    "cpu_fallback_policy": "forbidden by ONNX session and single-provider assertion",
+    "decoder": {
+      "full_frame_cpu_localization": false,
+      "invocations": 551,
+      "processor": "A53 CPU, TIDL-localized crops only",
+      "runtime": "ZXing-C++",
+      "version": "2.2.1"
+    },
+    "detector": {
+      "core": 1,
+      "invocations": 589,
+      "nodes": 283,
+      "provider": "TIDLExecutionProvider",
+      "registered_providers": [
+        "TIDLExecutionProvider",
+        "CPUExecutionProvider"
+      ],
+      "runtime": "ONNX Runtime"
+    },
+    "label": "TIDL \u00b7 C7x/MMA",
+    "remoteprocs": [
+      {
+        "firmware": "j722s-c71_0-fw",
+        "state": "running"
+      },
+      {
+        "firmware": "j722s-c71_1-fw",
+        "state": "running"
+      },
+      {
+        "firmware": "j722s-main-r5f0_0-fw",
+        "state": "running"
+      }
+    ]
+  },
+  "captured_utc": "2026-07-15T22:28:49.650129+00:00",
+  "detections": [
+    {
+      "decoded": true,
+      "height": 0.28055555555555556,
+      "left": 0.31953125,
+      "score": 0.8464308381080627,
+      "top": 0.6208333333333333,
+      "width": 0.234375
+    },
+    {
+      "decoded": true,
+      "height": 0.26666666666666666,
+      "left": 0.28203125,
+      "score": 0.8409070372581482,
+      "top": 0.18194444444444444,
+      "width": 0.42265625
+    }
+  ],
+  "error": "",
+  "formats": "All ZXing 2.2 formats",
+  "frames": 588,
+  "memory": {
+    "available_bytes": 2193629184,
+    "process_rss_bytes": 323244032,
+    "total_bytes": 2709544960,
+    "used_bytes": 515915776
+  },
+  "paused": false,
+  "performance": {
+    "decoder_ms": 61.34545999884722,
+    "detector_ms": 10.04152499990596,
+    "end_to_end_ms": 142.68485233321067,
+    "fps": 6.8083985345896405
+  },
+  "proof_image": "/var/lib/ti-edgeai-omnicode/proof/omnicode-20260715T222849Z.jpg",
+  "proof_image_sha256": "f5795afee87481427b5451ec64c0ecbc7844718443bc5c255d85a1cd765b7ce4",
+  "scans": [
+    {
+      "box": [
+        4,
+        3,
+        177,
+        192
+      ],
+      "content_type": "Text",
+      "count": 100,
+      "decode_ms": 9.148594999714987,
+      "detector_score": 0.4996490478515625,
+      "format": "DataMatrix",
+      "id": "a461d3741d4a",
+      "orientation": 0,
+      "symbology_identifier": "]d1",
+      "text": "J722S-VPAC-TIDL",
+      "timestamp": "2026-07-15T22:28:10.040253+00:00"
+    },
+    {
+      "box": [
+        8,
+        0,
+        270,
+        256
+      ],
+      "content_type": "Text",
+      "count": 59,
+      "decode_ms": 16.70077499875333,
+      "detector_score": 0.8276619911193848,
+      "format": "QRCode",
+      "id": "180ddea19dfc",
+      "orientation": 0,
+      "symbology_identifier": "]Q1",
+      "text": "https://beagleboard.org/beagley-ai",
+      "timestamp": "2026-07-15T22:27:50.180944+00:00"
+    },
+    {
+      "box": [
+        361,
+        131,
+        902,
+        323
+      ],
+      "content_type": "Text",
+      "count": 166,
+      "decode_ms": 61.34545999884722,
+      "detector_score": 0.8409070372581482,
+      "format": "Code128",
+      "id": "f0c2315bf3c4",
+      "orientation": 0,
+      "symbology_identifier": "]C0",
+      "text": "BEAGLEY-EDGEAI-2026",
+      "timestamp": "2026-07-15T22:28:49.566733+00:00"
+    },
+    {
+      "box": [
+        409,
+        447,
+        709,
+        649
+      ],
+      "content_type": "Text",
+      "count": 166,
+      "decode_ms": 28.41587000148138,
+      "detector_score": 0.8464308381080627,
+      "format": "EAN-13",
+      "id": "841f7f3e2e8c",
+      "orientation": 0,
+      "symbology_identifier": "]E0",
+      "text": "9780201379624",
+      "timestamp": "2026-07-15T22:28:49.504088+00:00"
+    }
+  ],
+  "selected": {
+    "box": [
+      361,
+      131,
+      902,
+      323
+    ],
+    "content_type": "Text",
+    "count": 166,
+    "decode_ms": 61.34545999884722,
+    "detector_score": 0.8409070372581482,
+    "format": "Code128",
+    "id": "f0c2315bf3c4",
+    "orientation": 0,
+    "symbology_identifier": "]C0",
+    "text": "BEAGLEY-EDGEAI-2026",
+    "timestamp": "2026-07-15T22:28:49.566733+00:00"
+  },
+  "source": {
+    "isp_active": false,
+    "label": "omnicode-sample.mp4",
+    "type": "video"
+  },
+  "system": {
+    "cpu_percent": 70.78015108101069
+  },
+  "uptime_seconds": 94.60022695000043,
+  "version": 1
+}

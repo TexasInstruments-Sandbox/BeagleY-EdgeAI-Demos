@@ -19,7 +19,11 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: demos/dachshund-gatekeeper/ui/package-lock.json
+          cache-dependency-path: |
+            demos/dachshund-gatekeeper/ui/package-lock.json
+            demos/omnicode/ui/package-lock.json
+      - name: Install native decoder headers
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends g++ libzxing-dev
       - name: Compile Python sources
         run: python -m py_compile demos/*/*.py
       - name: Check shell syntax
@@ -28,6 +32,16 @@ jobs:
         run: python -m unittest -v demos/dachshund-gatekeeper/test_gatekeeper_core.py
       - name: Build Gatekeeper UI
         working-directory: demos/dachshund-gatekeeper/ui
+        run: |
+          npm ci
+          npm run build
+      - name: Compile OmniCode decoder ABI
+        run: >-
+          g++ -std=c++17 -Wall -Wextra -Werror -fPIC -shared
+          demos/omnicode/decoder/omnicode_decoder.cpp
+          -o /tmp/libomnicode-decoder.so -lZXing
+      - name: Build OmniCode UI
+        working-directory: demos/omnicode/ui
         run: |
           npm ci
           npm run build

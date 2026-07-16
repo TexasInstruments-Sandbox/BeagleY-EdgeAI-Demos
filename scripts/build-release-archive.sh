@@ -13,13 +13,14 @@ OUTPUT="${REPO_ROOT}/release"
 ROOT_NAME="beagley-edgeai-j722s-psdk-11.02.01.03"
 ASSET_NAME="beagley-edgeai-all-debs-j722s-psdk-11.02.01.03.tar.xz"
 SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-1783987200}"
+BUILDER_COMMIT="${EDGEAI_BUILDER_COMMIT:-}"
 
 usage() {
     cat <<'EOF'
-Usage: scripts/build-release-archive.sh --debs DIR --kernel-image DEB --kernel-dtb DEB [--output DIR]
+Usage: scripts/build-release-archive.sh --debs DIR --kernel-image DEB --kernel-dtb DEB --builder-commit SHA [--output DIR]
 
 Requires GNU tar, xz, dpkg-deb, and sha256sum. DIR must be the validated
-28-package release directory containing SHA256SUMS and package-manifest.tsv.
+29-package release directory containing SHA256SUMS and package-manifest.tsv.
 EOF
 }
 
@@ -28,13 +29,14 @@ while [[ $# -gt 0 ]]; do
         --debs) DEBS="$2"; shift 2 ;;
         --kernel-image) KERNEL_IMAGE="$2"; shift 2 ;;
         --kernel-dtb) KERNEL_DTB="$2"; shift 2 ;;
+        --builder-commit) BUILDER_COMMIT="$2"; shift 2 ;;
         --output) OUTPUT="$2"; shift 2 ;;
         --help|-h) usage; exit 0 ;;
         *) echo "ERROR: unknown argument: $1" >&2; usage >&2; exit 2 ;;
     esac
 done
 
-[[ -n "${DEBS}" && -n "${KERNEL_IMAGE}" && -n "${KERNEL_DTB}" ]] || {
+[[ -n "${DEBS}" && -n "${KERNEL_IMAGE}" && -n "${KERNEL_DTB}" && -n "${BUILDER_COMMIT}" ]] || {
     usage >&2
     exit 2
 }
@@ -55,9 +57,13 @@ OUTPUT="$(cd "${OUTPUT}" && pwd)"
     echo "ERROR: ${DEBS} is not a validated release directory" >&2
     exit 1
 }
+[[ "${BUILDER_COMMIT}" =~ ^[0-9a-f]{40}$ ]] || {
+    echo "ERROR: --builder-commit must be a full 40-character git SHA" >&2
+    exit 1
+}
 mapfile -t package_debs < <(find "${DEBS}" -maxdepth 1 -type f -name '*.deb' -print | sort)
-[[ "${#package_debs[@]}" -eq 28 ]] || {
-    echo "ERROR: expected 28 EdgeAI packages, found ${#package_debs[@]}" >&2
+[[ "${#package_debs[@]}" -eq 29 ]] || {
+    echo "ERROR: expected 29 EdgeAI packages, found ${#package_debs[@]}" >&2
     exit 1
 }
 for file in "${KERNEL_IMAGE}" "${KERNEL_DTB}"; do
@@ -93,9 +99,9 @@ psdk_analytics=REL.PSDK.ANALYTICS.11.02.01.02
 tidl_osrt=11.02.16.00
 vision_apps=11.02.03
 kernel=6.12.49-vendor-k3-beagle
-edgeai_package_count=28
+edgeai_package_count=29
 kernel_package_count=2
-source_commit=$(git -C "${REPO_ROOT}" rev-parse HEAD 2>/dev/null || echo unknown)
+source_commit=${BUILDER_COMMIT}
 EOF
 contents_manifest="${stage}/CONTENTS.SHA256.tmp"
 (
@@ -108,7 +114,7 @@ asset="${OUTPUT}/${ASSET_NAME}"
 rm -f "${asset}" "${OUTPUT}/SHA256SUMS"
 tar --sort=name --mtime="@${SOURCE_DATE_EPOCH}" \
     --owner=0 --group=0 --numeric-owner -C "${stage}" -cf - "${ROOT_NAME}" | \
-    xz -6 -T1 --check=crc64 >"${asset}"
+    xz -9e -T1 --check=crc64 >"${asset}"
 (
     cd "${OUTPUT}"
     sha256sum "${ASSET_NAME}" > SHA256SUMS

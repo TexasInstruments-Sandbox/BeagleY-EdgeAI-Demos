@@ -1,0 +1,19 @@
+[Unit]
+Description=TI EdgeAI OmniCode reader
+Documentation=file:/usr/share/doc/ti-edgeai-omnicode/README.md.gz
+After=network-online.target systemd-udev-settle.service
+Wants=network-online.target
+Conflicts=ti-edgeai-dachshund-gatekeeper.service
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/default/ti-edgeai-omnicode
+ExecStart=/usr/bin/python3 /usr/lib/ti-edgeai-omnicode/omnicode.py --source ${OMNICODE_SOURCE} --media ${OMNICODE_MEDIA} --model-dir /opt/ti-edgeai-omnicode/models/ONR-OD-TI-BARCODE-YOLOX-NANO-416 --decoder-library /usr/lib/aarch64-linux-gnu/libomnicode-decoder.so.1 --ui-dir /usr/share/ti-edgeai-omnicode/ui --output-dir /var/lib/ti-edgeai-omnicode --host 0.0.0.0 --port ${OMNICODE_PORT} $OMNICODE_EXTRA_ARGS
+Restart=on-failure
+RestartSec=3
+User=root
+Group=root
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target

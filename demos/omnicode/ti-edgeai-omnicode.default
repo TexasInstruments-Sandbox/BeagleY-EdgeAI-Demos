@@ -1,0 +1,6 @@
+# The bundled multi-format video provides a deterministic first run.
+OMNICODE_SOURCE=media
+OMNICODE_MEDIA=/usr/share/ti-edgeai-omnicode/omnicode-sample.mp4
+OMNICODE_PORT=8090
+# Example: OMNICODE_EXTRA_ARGS=--formats=QRCode,DataMatrix,Code128,EAN13
+OMNICODE_EXTRA_ARGS=

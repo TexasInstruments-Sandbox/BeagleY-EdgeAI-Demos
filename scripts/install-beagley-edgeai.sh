@@ -7,7 +7,7 @@ readonly RELEASE_TAG="v11.2.1-beagley.1"
 readonly RELEASE_BASE="https://github.com/TexasInstruments-Sandbox/BeagleY-EdgeAI-Demos/releases/download/${RELEASE_TAG}"
 readonly ARCHIVE="beagley-edgeai-all-debs-j722s-psdk-11.02.01.03.tar.xz"
 readonly ARCHIVE_ROOT="beagley-edgeai-j722s-psdk-11.02.01.03"
-readonly ARCHIVE_SHA256="e7167086cae89288e05b550246710d5bae5b4584ba72121423b531568e8cd7ba"
+readonly ARCHIVE_SHA256="25038b1e00960a73f6183857c171fc39699281271988380486dc0a2d63ea85ba"
 
 CAMERA="none"
 REBOOT=0
