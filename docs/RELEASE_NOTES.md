@@ -34,6 +34,12 @@ through Armbian's standard `BUILD_DESKTOP=yes`, `DESKTOP_ENVIRONMENT=gnome`,
 GNOME/GDM/Wayland contents, DTBs, and absence of custom compositor/UHS policy
 all passed read-only validation.
 
+The untouched GNOME image already contains the exact 10-package PowerVR stack
+through Armbian's standard BeagleY profile. The release carries and reinstalls
+the same packages to make older or independently built Noble images
+deterministic; this graphics support is not added by an image customization
+hook.
+
 On a 12 GiB-expanded copy (matching normal first-boot SD expansion), all 30
 EdgeAI, 10 PowerVR, and three kernel packages installed successfully. The
 Rogue module built through DKMS for `6.12.49-vendor-k3-beagle`; `apt-get

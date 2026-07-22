@@ -52,6 +52,12 @@ release:
   `25.3.6908880+git20260225+d241b0d5df40-1`;
 - headers for `6.12.49-vendor-k3-beagle`.
 
+The untouched image produced from current Armbian `main` already contains all
+10 of those PowerVR packages through the standard BeagleY board profile. The
+release archive carries the same files and the installer reinstalls them so an
+older or independently built Noble image cannot drift to a different graphics
+ABI.
+
 After installing and rebooting, `eglinfo -B` and `vulkaninfo --summary` must
 identify PowerVR BXS. An `llvmpipe` or `lavapipe` result is a failed graphics
 validation, even if the desktop happens to render.
