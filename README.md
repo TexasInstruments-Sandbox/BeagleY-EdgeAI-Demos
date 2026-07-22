@@ -44,7 +44,8 @@ fallback state; a result that silently ran only on Cortex-A is not accepted.
 The release asset is an ordinary `tar.xz` archive containing:
 
 - 30 validated `arm64`/`all` EdgeAI Debian packages;
-- the matching Armbian `6.12.49-vendor-k3-beagle` kernel and DTB packages;
+- 10 checksum-pinned TI PowerVR graphics/firmware packages;
+- the matching Armbian `6.12.49-vendor-k3-beagle` kernel, DTB, and headers;
 - apt metadata, package manifests, checksums, and the guarded installer.
 
 For a BeagleY-AI running 64-bit Armbian Ubuntu Noble:
@@ -62,16 +63,18 @@ cd beagley-edgeai-j722s-psdk-11.02.01.03
 
 # No camera:
 sudo ./install-j722s-release.sh \
-  --debs debs --kernel kernel --camera none --reboot
+  --debs debs --graphics graphics --kernel kernel --camera none --reboot
 
 # Or replace `none` with `imx219` for an IMX219 attached to CSI0.
 ```
 
-The same release also provides an optional, regular-SD-boot Armbian Noble
-Minimal image. It contains the matching kernel and DTBs but intentionally does
-not preinstall EdgeAI; flash it, complete Armbian's first boot, then install the
-package archive above. See the full guide for its checksum and safe `dd`
-command.
+The release also provides optional regular-SD-boot Armbian Noble Minimal and
+GNOME 46 desktop images. Both come from the normal Armbian build path on
+[`Grippy98/build`](https://github.com/Grippy98/build), contain the matching
+kernel and DTBs, and intentionally leave EdgeAI as an explicit package install.
+The GNOME image uses Armbian's standard `mid` desktop tier and GNOME's native
+Wayland compositor; there is no custom or secondary compositor. See the full
+guide for checksums and a safe `dd` command.
 
 Read [the complete Armbian installation and rollback guide](docs/STOCK_ARMBIAN_INSTALL.md)
 before installing. The installer is board-, architecture-, userspace-,
@@ -127,6 +130,8 @@ exclusive TIDL/TIOVX resources.
 - TIDL tools and OSRT: `11.02.16.00`
 - Vision Apps: `11.02.03`
 - Kernel ABI: `6.12.49-vendor-k3-beagle`
+- PowerVR userspace/tools: `25.3.6908880`
+- PowerVR Mesa shim: `24.0.1`
 - Userspace: Ubuntu Noble, `arm64`
 
 The reproducible package and firmware sources live in

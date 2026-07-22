@@ -26,19 +26,25 @@ sha256sum -c CONTENTS.SHA256
 ```
 
 `debs/` contains the complete 30-package EdgeAI release and apt metadata.
-`kernel/` contains the two ABI-matched Armbian kernel/DTB packages. All 32
-Debian archives are covered by the inner and outer checksum manifests.
+`graphics/` contains the exact 10-package TI PowerVR stack for J722S/AM62P.
+`kernel/` contains the three ABI-matched Armbian kernel, DTB, and headers
+packages. All 43 Debian archives are covered by inner and outer checksum
+manifests.
 
-## Optional fresh Armbian SD image
+## Optional fresh Armbian SD images
 
-The release includes a normal SD-boot Armbian Noble Minimal image. It is the
-base image used for this package set, with the matching kernel and DTBs, but no
-EdgeAI packages preinstalled. Download and write it from a Linux workstation:
+The release includes normal SD-boot Armbian Noble Minimal and GNOME desktop
+images. Both have the matching kernel and DTBs but no EdgeAI packages
+preinstalled. The GNOME image is a standard Armbian `mid` profile with GNOME 46
+and GDM/Wayland; it has no custom Weston session or other secondary compositor.
+Choose one image and write it from a Linux workstation:
 
 ```bash
 TAG=v11.2.1-beagley.1
 BASE="https://github.com/TexasInstruments-Sandbox/BeagleY-EdgeAI-Demos/releases/download/${TAG}"
 IMAGE="armbian-beagley-ai-noble-vendor-6.12.49-minimal-base-20260715.img.xz"
+# Or:
+# IMAGE="armbian-beagley-ai-noble-vendor-6.12.49-gnome-wayland-mid-v11.2.1-beagley.1.img.xz"
 
 curl -fLO "${BASE}/${IMAGE}"
 curl -fLO "${BASE}/SHA256SUMS"
@@ -63,16 +69,17 @@ Choose the intended camera policy and run a dry run first:
 
 ```bash
 sudo ./install-j722s-release.sh \
-  --debs debs --kernel kernel --camera none --dry-run
+  --debs debs --graphics graphics --kernel kernel --camera none --dry-run
 
 # For an IMX219 physically attached to CSI0:
 sudo ./install-j722s-release.sh \
-  --debs debs --kernel kernel --camera imx219 --dry-run
+  --debs debs --graphics graphics --kernel kernel --camera imx219 --dry-run
 ```
 
 The dry run verifies the board model, Noble userspace, `arm64` architecture,
-all package and kernel checksums, package count, BeagleY 4 GB firmware marker,
-kernel metadata, and both EdgeAI DTBs. It makes no system changes.
+all package and kernel checksums, package count, PowerVR versions, BeagleY 4 GB
+firmware marker, kernel/header ABI, and both EdgeAI DTBs. It makes no system
+changes.
 
 ## Install
 
@@ -80,40 +87,51 @@ Run the same command without `--dry-run`. A reboot is required:
 
 ```bash
 sudo ./install-j722s-release.sh \
-  --debs debs --kernel kernel --camera none --reboot
+  --debs debs --graphics graphics --kernel kernel --camera none --reboot
 ```
 
 For the IMX219 on CSI0, use:
 
 ```bash
 sudo ./install-j722s-release.sh \
-  --debs debs --kernel kernel --camera imx219 --reboot
+  --debs debs --graphics graphics --kernel kernel --camera imx219 --reboot
 ```
 
 The installer:
 
 1. saves the package inventory and `/boot/armbianEnv.txt`;
-2. installs the matching kernel and DTB packages;
-3. selects the 4 GB EdgeAI DTB, with the CSI0/IMX219 composition when asked;
-4. installs all EdgeAI packages through apt/dpkg;
-5. runs dependency and dpkg audits;
-6. retains the complete manifest and install log under
+2. installs the matching kernel, DTB, and headers packages;
+3. installs the pinned TI PowerVR Mesa, firmware, userspace, tools, and DKMS
+   driver, then requires an installed DKMS result for that kernel ABI;
+4. selects the 4 GB EdgeAI DTB, with the CSI0/IMX219 composition when asked;
+5. installs all EdgeAI packages through apt/dpkg;
+6. runs dependency and dpkg audits;
+7. retains the complete manifest and install log under
    `/var/lib/ti-edgeai-release/<UTC timestamp>/`.
 
 It never runs `apt autoremove` and does not overwrite unrelated files outside
 the declared Debian package ownership and boot-policy update.
+
+The transaction permits the two version-pinned TI `+ti1` GStreamer packages
+to replace a newer Ubuntu revision. This is required for the packaged Bayer
+caps fix on IMX219; no unpinned package downgrade is requested.
 
 ## Validate after reboot
 
 ```bash
 uname -r
 find /sys/class/remoteproc -maxdepth 2 -name state -print -exec cat {} \;
+dkms status ti-img-rogue-driver
+eglinfo -B
+vulkaninfo --summary
 sudo validate-j722s-edgeai
 ```
 
 The strict smoke test must report full TIDL delegation and CPU fallback
 disabled. A workload that silently executes only on Cortex-A is not a passing
-result.
+result. The EGL and Vulkan reports must name the PowerVR BXS GPU, not llvmpipe
+or lavapipe. More image and desktop detail is in
+[ARMBIAN_GNOME_IMAGE.md](ARMBIAN_GNOME_IMAGE.md).
 
 For the Gatekeeper:
 

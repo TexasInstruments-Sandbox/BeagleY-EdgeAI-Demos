@@ -3,10 +3,14 @@
 Initial public demo release for the 4 GB BeagleY-AI (AM67A/J722S).
 
 - PSDK `11.02.01.03`, TIDL/OSRT `11.02.16.00`, Vision Apps `11.02.03`
-- 30 validated EdgeAI Debian packages plus two matching Armbian kernel/DTB
-  packages in one standard `tar.xz` archive
+- 30 validated EdgeAI Debian packages, 10 pinned TI PowerVR packages, and three
+  matching Armbian kernel/DTB/header packages in one standard `tar.xz` archive
+- PowerVR DKMS is built against the archived kernel headers, and install fails
+  closed if the exact ABI is not reported installed
 - optional regular-SD-boot Armbian Noble Minimal base image in standard
   `.img.xz` form; EdgeAI packages remain a separate, explicit installation
+- optional GNOME 46/Wayland Armbian Noble `mid` image built through the same
+  standard fork-based Armbian path, without a custom secondary compositor
 - release-hosted, checksum-pinned copy/paste bootstrap installer
 - guarded normal-Armbian Noble installer with dry-run, checksum, state record,
   camera-DTB selection, audit, and rollback information
