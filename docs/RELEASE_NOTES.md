@@ -1,6 +1,6 @@
 # BeagleY-AI EdgeAI demos — v11.2.1-beagley.1
 
-Initial public demo release for the 4 GB BeagleY-AI (AM67A/J722S).
+Public demo and stock-Armbian release for the 4 GB BeagleY-AI (AM67A/J722S).
 
 - PSDK `11.02.01.03`, TIDL/OSRT `11.02.16.00`, Vision Apps `11.02.03`
 - 30 validated EdgeAI Debian packages, 10 pinned TI PowerVR packages, and three
@@ -26,6 +26,20 @@ Initial public demo release for the 4 GB BeagleY-AI (AM67A/J722S).
   CPU ALPR, configurable parking zones, dwell/overstay history, leaderboard,
   bundled video, and IMX219 CSI0/VPAC ISP input
 - recorded hardware proof with CPU fallback disabled
+
+The GNOME image was built from
+[`Grippy98/build:agent/beagley-edgeai-gnome-noble`](https://github.com/Grippy98/build/tree/agent/beagley-edgeai-gnome-noble)
+through Armbian's standard `BUILD_DESKTOP=yes`, `DESKTOP_ENVIRONMENT=gnome`,
+`DESKTOP_TIER=mid` path. FAT/ext4 checks, package metadata, J722S boot payloads,
+GNOME/GDM/Wayland contents, DTBs, and absence of custom compositor/UHS policy
+all passed read-only validation.
+
+On a 12 GiB-expanded copy (matching normal first-boot SD expansion), all 30
+EdgeAI, 10 PowerVR, and three kernel packages installed successfully. The
+Rogue module built through DKMS for `6.12.49-vendor-k3-beagle`; `apt-get
+check`, `dpkg --audit`, library linkage, package counts, boot files, and both
+filesystems passed afterward. A dry run of the release installer also passed
+on the live 4 GB BeagleY-AI with IMX219/CSI0 selected.
 
 The package set previously passed installation, cold boot, TIDL, TFLite,
 IMX219 raw capture, VPAC ISP, package ownership/dependency, and release

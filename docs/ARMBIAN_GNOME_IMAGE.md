@@ -8,6 +8,11 @@ interfaces carried as ordinary kernel/DT patches. It does not run an image
 customization script, install the EdgeAI release during image creation, add a
 second compositor, or disable UHS.
 
+The validated source is branch
+[`agent/beagley-edgeai-gnome-noble`](https://github.com/Grippy98/build/tree/agent/beagley-edgeai-gnome-noble),
+commit `90e6a1c23437ee2e32d3cdb72797334553d9412b`, based directly on fork `main`
+commit `3fb3329393a15ffb8fd32e553353b82915ec77c6`.
+
 ## Reproduce the base image
 
 On an arm64 Linux workstation, or with Armbian's Docker build support:

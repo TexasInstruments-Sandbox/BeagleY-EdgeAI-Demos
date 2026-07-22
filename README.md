@@ -76,6 +76,9 @@ The GNOME image uses Armbian's standard `mid` desktop tier and GNOME's native
 Wayland compositor; there is no custom or secondary compositor. See the full
 guide for checksums and a safe `dd` command.
 
+[Download the GNOME image](https://github.com/TexasInstruments-Sandbox/BeagleY-EdgeAI-Demos/releases/download/v11.2.1-beagley.1/armbian-beagley-ai-noble-vendor-6.12.49-gnome-wayland-mid-v11.2.1-beagley.1.img.xz)
+or inspect its [reproducible Armbian branch](https://github.com/Grippy98/build/tree/agent/beagley-edgeai-gnome-noble).
+
 Read [the complete Armbian installation and rollback guide](docs/STOCK_ARMBIAN_INSTALL.md)
 before installing. The installer is board-, architecture-, userspace-,
 firmware-, and kernel-aware; it verifies every checksum and records the prior
