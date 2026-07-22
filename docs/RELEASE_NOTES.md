@@ -3,10 +3,11 @@
 Public demo and stock-Armbian release for the 4 GB BeagleY-AI (AM67A/J722S).
 
 - PSDK `11.02.01.03`, TIDL/OSRT `11.02.16.00`, Vision Apps `11.02.03`
-- 30 validated EdgeAI Debian packages, 10 pinned TI PowerVR packages, and three
-  matching Armbian kernel/DTB/header packages in one standard `tar.xz` archive
-- PowerVR DKMS is built against the archived kernel headers, and install fails
-  closed if the exact ABI is not reported installed
+- `ti-edgeai` `11.02.01-11`, with graphics dependencies removed
+- 30 validated EdgeAI Debian packages and two matching Armbian kernel/DTB
+  packages in one standard `tar.xz` archive
+- PowerVR remains owned by Armbian's standard BeagleY profile; the EdgeAI
+  archive neither bundles nor modifies the GPU packages
 - optional regular-SD-boot Armbian Noble Minimal base image in standard
   `.img.xz` form; EdgeAI packages remain a separate, explicit installation
 - optional GNOME 46/Wayland Armbian Noble `mid` image built through the same
@@ -34,18 +35,16 @@ through Armbian's standard `BUILD_DESKTOP=yes`, `DESKTOP_ENVIRONMENT=gnome`,
 GNOME/GDM/Wayland contents, DTBs, and absence of custom compositor/UHS policy
 all passed read-only validation.
 
-The untouched GNOME image already contains the exact 10-package PowerVR stack
-through Armbian's standard BeagleY profile. The release carries and reinstalls
-the same packages to make older or independently built Noble images
-deterministic; this graphics support is not added by an image customization
-hook.
+The untouched GNOME image already contains its PowerVR stack through Armbian's
+standard BeagleY profile. The EdgeAI release leaves those packages unchanged;
+this graphics support is not added by an image customization hook.
 
 On a 12 GiB-expanded copy (matching normal first-boot SD expansion), all 30
-EdgeAI, 10 PowerVR, and three kernel packages installed successfully. The
-Rogue module built through DKMS for `6.12.49-vendor-k3-beagle`; `apt-get
-check`, `dpkg --audit`, library linkage, package counts, boot files, and both
-filesystems passed afterward. A dry run of the release installer also passed
-on the live 4 GB BeagleY-AI with IMX219/CSI0 selected.
+EdgeAI and two kernel packages installed successfully without changing the
+preinstalled PowerVR package set. `apt-get check`, `dpkg --audit`, library
+linkage, package counts, boot files, and both filesystems passed afterward. A
+dry run of the release installer also passed on the live 4 GB BeagleY-AI with
+IMX219/CSI0 selected.
 
 The package set previously passed installation, cold boot, TIDL, TFLite,
 IMX219 raw capture, VPAC ISP, package ownership/dependency, and release

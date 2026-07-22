@@ -9,8 +9,6 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 DEBS=""
 KERNEL_IMAGE=""
 KERNEL_DTB=""
-KERNEL_HEADERS=""
-GRAPHICS=""
 OUTPUT="${REPO_ROOT}/release"
 ROOT_NAME="beagley-edgeai-j722s-psdk-11.02.01.03"
 ASSET_NAME="beagley-edgeai-all-debs-j722s-psdk-11.02.01.03.tar.xz"
@@ -19,11 +17,10 @@ BUILDER_COMMIT="${EDGEAI_BUILDER_COMMIT:-}"
 
 usage() {
     cat <<'EOF'
-Usage: scripts/build-release-archive.sh --debs DIR --graphics DIR --kernel-image DEB --kernel-dtb DEB --kernel-headers DEB --builder-commit SHA [--output DIR]
+Usage: scripts/build-release-archive.sh --debs DIR --kernel-image DEB --kernel-dtb DEB --builder-commit SHA [--output DIR]
 
 Requires GNU tar, xz, dpkg-deb, and sha256sum. DIR must be the validated
-30-package release directory and the checksum-pinned 10-package TI PowerVR
-directory. The kernel image, DTB, and headers must share one ABI.
+30-package release directory. The kernel image and DTB must share one ABI.
 EOF
 }
 
@@ -32,8 +29,6 @@ while [[ $# -gt 0 ]]; do
         --debs) DEBS="$2"; shift 2 ;;
         --kernel-image) KERNEL_IMAGE="$2"; shift 2 ;;
         --kernel-dtb) KERNEL_DTB="$2"; shift 2 ;;
-        --kernel-headers) KERNEL_HEADERS="$2"; shift 2 ;;
-        --graphics) GRAPHICS="$2"; shift 2 ;;
         --builder-commit) BUILDER_COMMIT="$2"; shift 2 ;;
         --output) OUTPUT="$2"; shift 2 ;;
         --help|-h) usage; exit 0 ;;
@@ -41,8 +36,8 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-[[ -n "${DEBS}" && -n "${GRAPHICS}" && -n "${KERNEL_IMAGE}" && \
-   -n "${KERNEL_DTB}" && -n "${KERNEL_HEADERS}" && -n "${BUILDER_COMMIT}" ]] || {
+[[ -n "${DEBS}" && -n "${KERNEL_IMAGE}" && -n "${KERNEL_DTB}" && \
+   -n "${BUILDER_COMMIT}" ]] || {
     usage >&2
     exit 2
 }
@@ -54,19 +49,13 @@ for tool in tar xz dpkg-deb sha256sum; do
 done
 
 DEBS="$(cd "${DEBS}" && pwd)"
-GRAPHICS="$(cd "${GRAPHICS}" && pwd)"
 KERNEL_IMAGE="$(cd "$(dirname "${KERNEL_IMAGE}")" && pwd)/$(basename "${KERNEL_IMAGE}")"
 KERNEL_DTB="$(cd "$(dirname "${KERNEL_DTB}")" && pwd)/$(basename "${KERNEL_DTB}")"
-KERNEL_HEADERS="$(cd "$(dirname "${KERNEL_HEADERS}")" && pwd)/$(basename "${KERNEL_HEADERS}")"
 mkdir -p "${OUTPUT}"
 OUTPUT="$(cd "${OUTPUT}" && pwd)"
 
 [[ -s "${DEBS}/SHA256SUMS" && -s "${DEBS}/package-manifest.tsv" ]] || {
     echo "ERROR: ${DEBS} is not a validated release directory" >&2
-    exit 1
-}
-[[ -s "${GRAPHICS}/SHA256SUMS" ]] || {
-    echo "ERROR: ${GRAPHICS} is not a checksum-pinned PowerVR directory" >&2
     exit 1
 }
 [[ "${BUILDER_COMMIT}" =~ ^[0-9a-f]{40}$ ]] || {
@@ -78,16 +67,7 @@ mapfile -t package_debs < <(find "${DEBS}" -maxdepth 1 -type f -name '*.deb' -pr
     echo "ERROR: expected 30 EdgeAI packages, found ${#package_debs[@]}" >&2
     exit 1
 }
-mapfile -t graphics_debs < <(find "${GRAPHICS}" -maxdepth 1 -type f -name '*.deb' -print | sort)
-[[ "${#graphics_debs[@]}" -eq 10 ]] || {
-    echo "ERROR: expected 10 PowerVR packages, found ${#graphics_debs[@]}" >&2
-    exit 1
-}
-(
-    cd "${GRAPHICS}"
-    sha256sum -c SHA256SUMS
-)
-for file in "${KERNEL_IMAGE}" "${KERNEL_DTB}" "${KERNEL_HEADERS}"; do
+for file in "${KERNEL_IMAGE}" "${KERNEL_DTB}"; do
     [[ -s "${file}" ]] || { echo "ERROR: missing ${file}" >&2; exit 1; }
     [[ "$(dpkg-deb -f "${file}" Architecture)" == arm64 ]] || {
         echo "ERROR: kernel package is not arm64: ${file}" >&2
@@ -96,7 +76,6 @@ for file in "${KERNEL_IMAGE}" "${KERNEL_DTB}" "${KERNEL_HEADERS}"; do
 done
 [[ "$(dpkg-deb -f "${KERNEL_IMAGE}" Package)" == linux-image-vendor-k3-beagle ]]
 [[ "$(dpkg-deb -f "${KERNEL_DTB}" Package)" == linux-dtb-vendor-k3-beagle ]]
-[[ "$(dpkg-deb -f "${KERNEL_HEADERS}" Package)" == linux-headers-vendor-k3-beagle ]]
 (
     cd "${DEBS}"
     sha256sum -c SHA256SUMS
@@ -105,10 +84,9 @@ done
 stage="$(mktemp -d)"
 trap 'rm -rf "${stage}"' EXIT
 root="${stage}/${ROOT_NAME}"
-mkdir -p "${root}/debs" "${root}/graphics" "${root}/kernel"
+mkdir -p "${root}/debs" "${root}/kernel"
 cp -a "${DEBS}/." "${root}/debs/"
-cp -a "${GRAPHICS}/." "${root}/graphics/"
-cp -a "${KERNEL_IMAGE}" "${KERNEL_DTB}" "${KERNEL_HEADERS}" "${root}/kernel/"
+cp -a "${KERNEL_IMAGE}" "${KERNEL_DTB}" "${root}/kernel/"
 cp -a "${REPO_ROOT}/scripts/install-j722s-release.sh" "${root}/"
 cp -a "${REPO_ROOT}/docs/STOCK_ARMBIAN_INSTALL.md" "${root}/README.md"
 
@@ -123,10 +101,8 @@ tidl_osrt=11.02.16.00
 vision_apps=11.02.03
 kernel=6.12.49-vendor-k3-beagle
 edgeai_package_count=30
-powervr_package_count=10
-powervr_userspace=25.3.6908880
-powervr_mesa=24.0.1
-kernel_package_count=3
+kernel_package_count=2
+graphics_owner=armbian-beagley-profile
 source_commit=${BUILDER_COMMIT}
 EOF
 contents_manifest="${stage}/CONTENTS.SHA256.tmp"

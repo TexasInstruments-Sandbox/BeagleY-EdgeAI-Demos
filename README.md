@@ -44,9 +44,11 @@ fallback state; a result that silently ran only on Cortex-A is not accepted.
 The release asset is an ordinary `tar.xz` archive containing:
 
 - 30 validated `arm64`/`all` EdgeAI Debian packages;
-- 10 checksum-pinned TI PowerVR graphics/firmware packages;
-- the matching Armbian `6.12.49-vendor-k3-beagle` kernel, DTB, and headers;
+- the matching Armbian `6.12.49-vendor-k3-beagle` kernel and DTB packages;
 - apt metadata, package manifests, checksums, and the guarded installer.
+
+The standard Armbian BeagleY profile owns the PowerVR GPU packages. This
+EdgeAI release does not bundle, reinstall, downgrade, or depend on them.
 
 For a BeagleY-AI running 64-bit Armbian Ubuntu Noble:
 
@@ -63,7 +65,7 @@ cd beagley-edgeai-j722s-psdk-11.02.01.03
 
 # No camera:
 sudo ./install-j722s-release.sh \
-  --debs debs --graphics graphics --kernel kernel --camera none --reboot
+  --debs debs --kernel kernel --camera none --reboot
 
 # Or replace `none` with `imx219` for an IMX219 attached to CSI0.
 ```
@@ -132,9 +134,8 @@ exclusive TIDL/TIOVX resources.
 - PSDK Analytics: `REL.PSDK.ANALYTICS.11.02.01.02`
 - TIDL tools and OSRT: `11.02.16.00`
 - Vision Apps: `11.02.03`
+- EdgeAI metapackage: `11.02.01-11` (no GPU package dependencies)
 - Kernel ABI: `6.12.49-vendor-k3-beagle`
-- PowerVR userspace/tools: `25.3.6908880`
-- PowerVR Mesa shim: `24.0.1`
 - Userspace: Ubuntu Noble, `arm64`
 
 The reproducible package and firmware sources live in

@@ -32,8 +32,8 @@ DOCKER_ARMBIAN_HOST_ARCH=arm64 ./compile.sh build \
 
 `DOCKER_ARMBIAN_HOST_ARCH=arm64` selects Armbian's arm64 build container when
 the host is Apple Silicon. It does not alter the produced root filesystem.
-The EdgeAI/PowerVR packages remain the same independently versioned release
-archive used by stock and existing Armbian installations.
+The EdgeAI packages remain a separate independently versioned release archive
+used by stock and existing Armbian installations.
 
 ## Graphics path
 
@@ -42,21 +42,21 @@ TI documents Wayland and GBM EGL platforms, OpenGL ES 3.2, Vulkan 1.3, and
 DMA-BUF modifiers for this GPU stack. GNOME 46 runs its normal Mutter Wayland
 compositor on top of DRM/KMS and EGL; GDM remains the standard display manager.
 
-The package installer provides the exact TI Noble graphics set used for this
-release:
+The untouched image produced from current Armbian `main` contains the following
+PowerVR packages through its standard BeagleY board profile:
 
 - PowerVR Mesa shim `24.0.1+git20250304+82e6a9293c-2`;
 - Rogue firmware, tools, and userspace
   `25.3.6908880+git20260217+2ecc98c61aed-2`;
 - Rogue DKMS driver
   `25.3.6908880+git20260225+d241b0d5df40-1`;
-- headers for `6.12.49-vendor-k3-beagle`.
+- the matching driver firmware, plus the kernel headers used by Armbian's
+  normal image build.
 
-The untouched image produced from current Armbian `main` already contains all
-10 of those PowerVR packages through the standard BeagleY board profile. The
-release archive carries the same files and the installer reinstalls them so an
-older or independently built Noble image cannot drift to a different graphics
-ABI.
+Armbian owns and upgrades this graphics stack. The EdgeAI archive and installer
+do not bundle, reinstall, downgrade, or depend on any of these packages. This
+keeps TIDL/TIOVX/VPAC installation independent of the optional desktop while
+leaving PowerVR policy with the distribution that supplies it.
 
 After installing and rebooting, `eglinfo -B` and `vulkaninfo --summary` must
 identify PowerVR BXS. An `llvmpipe` or `lavapipe` result is a failed graphics

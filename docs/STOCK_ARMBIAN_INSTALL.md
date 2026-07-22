@@ -26,10 +26,10 @@ sha256sum -c CONTENTS.SHA256
 ```
 
 `debs/` contains the complete 30-package EdgeAI release and apt metadata.
-`graphics/` contains the exact 10-package TI PowerVR stack for J722S/AM62P.
-`kernel/` contains the three ABI-matched Armbian kernel, DTB, and headers
-packages. All 43 Debian archives are covered by inner and outer checksum
-manifests.
+`kernel/` contains the two ABI-matched Armbian kernel image and DTB packages.
+All 32 Debian archives are covered by inner and outer checksum manifests.
+The standard Armbian BeagleY profile owns the PowerVR stack; this archive and
+installer do not bundle, reinstall, downgrade, or depend on GPU packages.
 
 ## Optional fresh Armbian SD images
 
@@ -69,16 +69,16 @@ Choose the intended camera policy and run a dry run first:
 
 ```bash
 sudo ./install-j722s-release.sh \
-  --debs debs --graphics graphics --kernel kernel --camera none --dry-run
+  --debs debs --kernel kernel --camera none --dry-run
 
 # For an IMX219 physically attached to CSI0:
 sudo ./install-j722s-release.sh \
-  --debs debs --graphics graphics --kernel kernel --camera imx219 --dry-run
+  --debs debs --kernel kernel --camera imx219 --dry-run
 ```
 
 The dry run verifies the board model, Noble userspace, `arm64` architecture,
-all package and kernel checksums, package count, PowerVR versions, BeagleY 4 GB
-firmware marker, kernel/header ABI, and both EdgeAI DTBs. It makes no system
+all package and kernel checksums, package count, BeagleY 4 GB firmware marker,
+kernel ABI, and both EdgeAI DTBs. It makes no system
 changes.
 
 ## Install
@@ -87,26 +87,24 @@ Run the same command without `--dry-run`. A reboot is required:
 
 ```bash
 sudo ./install-j722s-release.sh \
-  --debs debs --graphics graphics --kernel kernel --camera none --reboot
+  --debs debs --kernel kernel --camera none --reboot
 ```
 
 For the IMX219 on CSI0, use:
 
 ```bash
 sudo ./install-j722s-release.sh \
-  --debs debs --graphics graphics --kernel kernel --camera imx219 --reboot
+  --debs debs --kernel kernel --camera imx219 --reboot
 ```
 
 The installer:
 
 1. saves the package inventory and `/boot/armbianEnv.txt`;
-2. installs the matching kernel, DTB, and headers packages;
-3. installs the pinned TI PowerVR Mesa, firmware, userspace, tools, and DKMS
-   driver, then requires an installed DKMS result for that kernel ABI;
-4. selects the 4 GB EdgeAI DTB, with the CSI0/IMX219 composition when asked;
-5. installs all EdgeAI packages through apt/dpkg;
-6. runs dependency and dpkg audits;
-7. retains the complete manifest and install log under
+2. installs the matching kernel image and DTB packages;
+3. selects the 4 GB EdgeAI DTB, with the CSI0/IMX219 composition when asked;
+4. installs all EdgeAI packages through apt/dpkg;
+5. runs dependency and dpkg audits;
+6. retains the complete manifest and install log under
    `/var/lib/ti-edgeai-release/<UTC timestamp>/`.
 
 It never runs `apt autoremove` and does not overwrite unrelated files outside
@@ -121,17 +119,16 @@ caps fix on IMX219; no unpinned package downgrade is requested.
 ```bash
 uname -r
 find /sys/class/remoteproc -maxdepth 2 -name state -print -exec cat {} \;
-dkms status ti-img-rogue-driver
-eglinfo -B
-vulkaninfo --summary
 sudo validate-j722s-edgeai
 ```
 
 The strict smoke test must report full TIDL delegation and CPU fallback
 disabled. A workload that silently executes only on Cortex-A is not a passing
-result. The EGL and Vulkan reports must name the PowerVR BXS GPU, not llvmpipe
-or lavapipe. More image and desktop detail is in
-[ARMBIAN_GNOME_IMAGE.md](ARMBIAN_GNOME_IMAGE.md).
+result. For GNOME graphics validation, separately use the Armbian-provided
+`eglinfo -B` and `vulkaninfo --summary`; the reports must name PowerVR BXS, not
+llvmpipe or lavapipe. More image and desktop detail is in
+[ARMBIAN_GNOME_IMAGE.md](ARMBIAN_GNOME_IMAGE.md). GPU validation is a base-OS
+check and is not part of the EdgeAI package transaction.
 
 For the Gatekeeper:
 
