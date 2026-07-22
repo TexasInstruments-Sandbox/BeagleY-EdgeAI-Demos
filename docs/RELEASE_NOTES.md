@@ -40,11 +40,12 @@ standard BeagleY profile. The EdgeAI release leaves those packages unchanged;
 this graphics support is not added by an image customization hook.
 
 On a 12 GiB-expanded copy (matching normal first-boot SD expansion), all 30
-EdgeAI and two kernel packages installed successfully without changing the
-preinstalled PowerVR package set. `apt-get check`, `dpkg --audit`, library
-linkage, package counts, boot files, and both filesystems passed afterward. A
-dry run of the release installer also passed on the live 4 GB BeagleY-AI with
-IMX219/CSI0 selected.
+EdgeAI packages installed successfully without changing the preinstalled
+PowerVR package set. The image already contained the same kernel ABI and DTBs;
+the two archived kernel packages passed metadata, checksum, and content
+validation. `apt-get check`, `dpkg --audit`, library linkage, package counts,
+boot files, and both filesystems passed afterward. A release-hosted one-click
+dry run also passed on the live 4 GB BeagleY-AI with IMX219/CSI0 selected.
 
 The package set previously passed installation, cold boot, TIDL, TFLite,
 IMX219 raw capture, VPAC ISP, package ownership/dependency, and release
